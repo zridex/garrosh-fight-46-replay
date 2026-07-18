@@ -1309,7 +1309,7 @@ function currentMechanic(t) {
   const nearby = DATA.markers.find(marker => Math.abs(marker.t - t) <= 650);
   if (nearby) return nearby;
   let previous = null;
-  for (const marker of DATA.markers) {
+  for (const [markerIndex, marker] of DATA.markers.entries()) {
     if (marker.t > t) break;
     previous = marker;
   }
@@ -2233,6 +2233,7 @@ function buildTimeline() {
     button.className = "marker-button";
     button.dataset.type = marker.type;
     button.dataset.lane = String(lane);
+    button.dataset.markerIndex = String(markerIndex);
     button.style.left = `${position}%`;
     if (!["death", "kill", "wipe"].includes(marker.type)) button.style.color = phaseAt(marker.t).color;
     button.title = `${marker.label} · ${fmtTime(marker.t)}`;
@@ -2514,6 +2515,21 @@ function bindEvents() {
     const rect = event.currentTarget.getBoundingClientRect();
     setTime((event.clientX - rect.left) / rect.width * DATA.fight.end);
   });
+  $("#timelineAxis").addEventListener("click", event => {
+    if (!event.detail || !event.target.closest(".marker-button")) return;
+    const markerButtons = $$(".marker-button", event.currentTarget);
+    const nearest = markerButtons.reduce((best, button) => {
+      const rect = button.getBoundingClientRect();
+      const distance = Math.abs(rect.left + rect.width / 2 - event.clientX);
+      return !best || distance < best.distance ? { button, distance } : best;
+    }, null)?.button;
+    const marker = nearest ? DATA.markers[Number(nearest.dataset.markerIndex)] : null;
+    if (!marker) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (marker.target && actorsById.get(marker.target)?.kind === "player") selectActor(marker.target);
+    setTime(marker.t);
+  }, true);
 
   window.addEventListener("keydown", event => {
     if (event.key === "Escape") {
