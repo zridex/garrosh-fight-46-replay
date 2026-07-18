@@ -1,0 +1,2879 @@
+<!doctype html>
+<html lang="en" data-ready="false">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <title>Garrosh Full Fight Replay</title>
+  <style>
+    :root {
+      --bg: #070a0c;
+      --surface: #0c1114;
+      --surface-2: #10171b;
+      --surface-3: #141c21;
+      --canvas: #090d0f;
+      --border: #2a343a;
+      --border-strong: #3a464d;
+      --text: #f4f6f7;
+      --muted: #9ba6ad;
+      --quiet: #6f7b82;
+      --accent: #f7b84b;
+      --accent-2: #815ee7;
+      --danger: #ff5b55;
+      --info: #54c7ec;
+      --radius: 8px;
+      --topbar-h: 60px;
+      --control-h: 42px;
+      --shadow: 0 16px 40px rgba(0, 0, 0, .32);
+      --font: "Segoe UI Variable", "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
+      --mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; margin: 0; background: var(--bg); }
+    body {
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.4;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font: inherit; color: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    a { color: inherit; }
+    :focus-visible { outline: 2px solid #d7c6ff; outline-offset: 2px; }
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    #app {
+      height: 100dvh;
+      min-height: 560px;
+      display: grid;
+      grid-template-rows: var(--topbar-h) minmax(0, 1fr);
+      background: var(--bg);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border);
+      background: #090d10;
+    }
+    .brand { min-width: 0; }
+    .brand-meta {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 7px;
+    }
+    .brand h1 {
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .brand p {
+      min-width: 0;
+      margin: 1px 0 0;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .raid-series-link {
+      display: inline-flex;
+      min-height: 20px;
+      flex: 0 0 auto;
+      align-items: center;
+      margin-top: 1px;
+      padding: 0 6px;
+      border: 1px solid #39434a;
+      border-radius: 999px;
+      background: #11181c;
+      color: #dce2e5;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .raid-series-link:hover { border-color: #7b68bd; background: #171d25; }
+    .raid-series-link[hidden] { display: none; }
+    .top-phase {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      min-width: 0;
+      font-weight: 650;
+    }
+    .phase-name { color: #d8dde0; white-space: nowrap; }
+    .current-mechanic {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .top-time { color: #dbe1e4; font-family: var(--mono); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .mechanic-glyph {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 auto;
+      transform: rotate(45deg);
+      border-radius: 2px;
+      background: currentColor;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .icon-button, .text-button, .speed-button, .transport-button {
+      display: inline-flex;
+      min-height: var(--control-h);
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid var(--border-strong);
+      border-radius: 7px;
+      background: #10161a;
+      color: #d9dee1;
+      cursor: pointer;
+      user-select: none;
+    }
+    .icon-button:hover, .text-button:hover, .speed-button:hover, .transport-button:hover {
+      border-color: #56636a;
+      background: #151d22;
+    }
+    .icon-button:active, .text-button:active, .speed-button:active, .transport-button:active { transform: translateY(1px); }
+    .icon-button { width: 42px; padding: 0; }
+    .text-button { padding: 0 13px; }
+    .icon { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .raid-toggle[aria-pressed="true"] { border-color: #8c73df; background: #2d2452; color: #f1ebff; box-shadow: inset 0 0 0 1px rgba(166, 142, 241, .28); }
+    .mobile-toggle { display: none; }
+
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 246px minmax(420px, 1fr) 316px;
+      gap: 1px;
+      overflow: hidden;
+      background: var(--border);
+    }
+    .rail, .stage { min-width: 0; min-height: 0; background: var(--surface); }
+    .rail {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+    .rail-head {
+      display: flex;
+      min-height: 52px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .rail-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0;
+      font-size: 14px;
+      font-weight: 650;
+    }
+    .count { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .drawer-close { display: none; }
+
+    .roster-body { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+    .search-wrap { position: relative; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .search-wrap .icon { position: absolute; top: 20px; right: 22px; width: 15px; height: 15px; color: var(--quiet); pointer-events: none; }
+    .search-input {
+      width: 100%;
+      height: 36px;
+      padding: 0 34px 0 11px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      outline: 0;
+      background: #0a0f12;
+      color: var(--text);
+      font-size: 12px;
+    }
+    .search-input:focus { border-color: #7c68bc; box-shadow: 0 0 0 2px rgba(129, 94, 231, .2); }
+    .player-list { min-height: 0; overflow: auto; padding: 5px; scrollbar-color: #455159 transparent; }
+    .player-row {
+      position: relative;
+      width: 100%;
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: 12px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 9px;
+      padding: 5px 8px;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+    .player-row:hover { background: #12191d; }
+    .player-row[aria-selected="true"] { border-color: #8266d2; background: #181426; }
+    .player-row[aria-selected="true"]::before { content: ""; position: absolute; top: 4px; bottom: 4px; left: -1px; width: 2px; border-radius: 2px; background: #8d6ee7; }
+    .player-row[data-state="dead"] { opacity: .62; }
+    .player-row[data-state="dead"] .player-name { text-decoration: line-through; text-decoration-color: rgba(255, 110, 105, .7); }
+    .class-dot { width: 10px; height: 10px; border: 1px solid rgba(255,255,255,.75); border-radius: 50%; box-shadow: 0 0 0 2px rgba(0,0,0,.25); }
+    .player-name { overflow: hidden; font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .player-state { color: var(--quiet); font-family: var(--mono); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .player-state[data-flag="fresh"] { color: #4d5960; }
+    .player-state[data-flag="stale"] { color: #c9a35c; }
+    .player-state[data-flag="transit"], .player-state[data-flag="wait"] { color: #93848f; letter-spacing: .04em; }
+    .player-state[data-flag="dead"] { color: #ff8a84; font-weight: 700; letter-spacing: .04em; }
+    .list-empty { padding: 18px 12px; color: var(--quiet); font-size: 11px; text-align: center; }
+    .roster-foot {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border-top: 1px solid var(--border);
+      color: var(--quiet);
+      font-size: 11px;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-rows: minmax(280px, 1fr) 112px 78px 28px;
+      overflow: hidden;
+    }
+    .arena-card { min-height: 0; display: grid; grid-template-rows: 52px minmax(0, 1fr); }
+    .arena-head {
+      display: grid;
+      grid-template-columns: minmax(170px, 1fr) auto minmax(180px, 1fr);
+      align-items: center;
+      gap: 14px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      background: #0d1215;
+    }
+    .arena-title-wrap { min-width: 0; }
+    .arena-title { overflow: hidden; font-size: 15px; font-weight: 680; text-overflow: ellipsis; white-space: nowrap; }
+    .arena-space { margin-top: 1px; overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .arena-mechanic {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      justify-self: center;
+      gap: 8px;
+      max-width: 100%;
+      min-height: 26px;
+      overflow: hidden;
+      padding: 0 11px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .arena-mechanic[data-kind="alert"] { border-color: rgba(247, 184, 75, .32); background: rgba(247, 184, 75, .07); }
+    .arena-mechanic[data-kind="danger"] { border-color: rgba(255, 115, 95, .36); background: rgba(255, 115, 95, .07); color: #ff8f7d; }
+    .arena-mechanic[data-kind="calm"] { border-color: #283238; background: rgba(255, 255, 255, .02); color: #a7b2b9; }
+    .time-readout { justify-self: end; white-space: nowrap; font-family: var(--mono); font-size: 14px; font-variant-numeric: tabular-nums; }
+    .time-readout strong { font-size: 18px; }
+    .time-readout span { color: var(--muted); }
+
+    .canvas-wrap { position: relative; min-height: 0; overflow: hidden; background: var(--canvas); }
+    #arenaCanvas { display: block; width: 100%; height: 100%; min-height: 250px; touch-action: none; cursor: crosshair; }
+    .canvas-note {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      padding: 4px 7px;
+      border: 1px solid rgba(75, 88, 96, .55);
+      border-radius: 4px;
+      background: rgba(7, 10, 12, .72);
+      color: #7c8992;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .08em;
+      pointer-events: none;
+    }
+    .arena-legend {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      display: grid;
+      gap: 6px;
+      padding: 9px 10px;
+      border: 1px solid rgba(68, 80, 87, .8);
+      border-radius: 6px;
+      background: rgba(8, 12, 14, .88);
+      color: #b5bec3;
+      font-size: 10px;
+      pointer-events: none;
+    }
+    .legend-row { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .legend-mark { width: 16px; height: 10px; position: relative; display: inline-block; }
+    .legend-mark.player::before { content: ""; position: absolute; top: 1px; left: 4px; width: 7px; height: 7px; border: 1px solid #fff; border-radius: 50%; background: #54c7ec; }
+    .legend-mark.malice::before { content: ""; position: absolute; inset: 0 3px; border: 2px solid var(--accent); border-radius: 50%; }
+    .legend-mark.trail::before { content: ""; position: absolute; top: 5px; left: 0; width: 16px; border-top: 2px solid #9a7ce8; }
+    .legend-mark.hostile::before { content: ""; position: absolute; top: 0; left: 3px; width: 8px; height: 8px; transform: rotate(45deg); border: 1px solid #ffc0bd; background: var(--danger); }
+    .legend-mark.clump::before { content: "7"; position: absolute; inset: -2px 2px; display: grid; place-items: center; border: 1px solid #ffbb73; border-radius: 50%; color: #ffe1bd; font: 700 7px var(--mono); }
+    .iron-clump-card {
+      position: absolute;
+      z-index: 5;
+      top: 12px;
+      right: 12px;
+      width: min(292px, calc(100% - 28px));
+      overflow: hidden;
+      border: 1px solid rgba(255, 144, 91, .72);
+      border-radius: 9px;
+      background: rgba(9, 13, 16, .93);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, .38), inset 3px 0 #ff825f;
+      backdrop-filter: blur(7px);
+    }
+    .iron-clump-card[hidden] { display: none; }
+    .iron-clump-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px 7px 13px;
+      border-bottom: 1px solid rgba(91, 101, 107, .48);
+    }
+    .iron-clump-kicker { color: #ff9a79; font-family: var(--mono); font-size: 9px; font-weight: 760; letter-spacing: .09em; }
+    .iron-clump-title { margin-top: 2px; color: #f5f7f8; font-size: 13px; font-weight: 740; }
+    .iron-clump-count {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border: 1px solid rgba(255, 173, 116, .54);
+      border-radius: 999px;
+      background: rgba(255, 126, 78, .12);
+      color: #ffd4b5;
+      font: 700 10px var(--mono);
+      white-space: nowrap;
+    }
+    .iron-clump-meta { padding: 6px 12px 1px; color: #9da8ae; font: 9px var(--mono); }
+    .iron-clump-members {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3px 6px;
+      padding: 7px 9px 9px;
+    }
+    .iron-clump-member {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+      min-height: 29px;
+      padding: 3px 5px;
+      border: 1px solid rgba(69, 81, 88, .55);
+      border-radius: 5px;
+      background: rgba(255, 255, 255, .025);
+      color: #dce3e6;
+      text-align: left;
+    }
+    .iron-clump-member:hover, .iron-clump-member:focus-visible { border-color: rgba(255, 173, 116, .82); background: rgba(255, 135, 83, .09); }
+    .iron-clump-member.is-estimated { border-style: dashed; }
+    .clump-rank {
+      display: grid;
+      width: 18px;
+      height: 18px;
+      place-items: center;
+      border-radius: 50%;
+      background: #d45e43;
+      color: white;
+      font: 750 9px var(--mono);
+    }
+    .iron-clump-member.is-estimated .clump-rank { background: #8d633d; color: #ffe0b9; }
+    .clump-name { min-width: 0; overflow: hidden; font-size: 10px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .clump-distance { color: #8f9ba1; font: 8px var(--mono); white-space: nowrap; }
+    .iron-clump-note { padding: 0 12px 9px; color: #9da8ae; font-size: 9px; line-height: 1.35; }
+    .iron-clump-card.is-estimated .iron-clump-note { color: #e6b47f; }
+    .canvas-tools {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid rgba(79, 92, 100, .72);
+      border-radius: 9px;
+      background: rgba(8, 12, 14, .84);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .28);
+      backdrop-filter: blur(5px);
+    }
+    .canvas-tools .icon-button { width: 36px; min-height: 36px; border: 0; background: transparent; }
+    .canvas-tools .icon-button:hover { background: rgba(255, 255, 255, .07); }
+    .canvas-tools .icon-button:disabled { opacity: .32; cursor: default; }
+    .canvas-tools .zoom-value-button {
+      width: 58px;
+      color: #dce3e6;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+    .canvas-wrap.is-zoomed .canvas-tools { border-color: rgba(141, 110, 231, .65); }
+    .canvas-wrap.is-zoomed .zoom-value-button { color: #d8c9ff; }
+    .canvas-gesture-hint {
+      position: absolute;
+      right: 12px;
+      bottom: 62px;
+      padding: 5px 8px;
+      border: 1px solid rgba(74, 87, 95, .62);
+      border-radius: 999px;
+      background: rgba(7, 11, 13, .78);
+      color: #aeb8bd;
+      font-size: 9px;
+      letter-spacing: .01em;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .canvas-gesture-hint .touch-copy { display: none; }
+    .canvas-gesture-hint.is-used { opacity: 0; transform: translateY(4px); }
+    @media (pointer: coarse) {
+      .canvas-gesture-hint .mouse-copy { display: none; }
+      .canvas-gesture-hint .touch-copy { display: inline; }
+    }
+    .raid-frame-panel {
+      position: absolute;
+      z-index: 6;
+      top: 12px;
+      right: 12px;
+      width: min(300px, calc(100% - 28px));
+      padding: 7px;
+      border: 1px solid rgba(86, 98, 107, .86);
+      border-radius: 7px;
+      background: rgba(8, 12, 15, .88);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, .32);
+      backdrop-filter: blur(5px);
+    }
+    .raid-frame-panel[hidden] { display: none; }
+    .raid-frame-head {
+      min-height: 24px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 2px 5px;
+      color: #dce2e5;
+      font-size: 10px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .raid-frame-head strong { font-size: 10px; }
+    .raid-frame-summary { min-width: 0; flex: 1; overflow: hidden; color: #8f9aa1; font-family: var(--mono); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .raid-frame-close {
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: #8f9aa1;
+      font-size: 17px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .raid-frame-close:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .raid-frame-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; }
+    .raid-frame-unit {
+      position: relative;
+      min-width: 0;
+      height: 25px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 8px;
+      align-items: center;
+      gap: 2px;
+      overflow: hidden;
+      padding: 0 4px 0 6px;
+      border: 1px solid color-mix(in srgb, var(--unit-color) 42%, #344047);
+      border-radius: 3px;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--unit-color) 19%, rgba(14,20,23,.94)), rgba(14,20,23,.94) 72%);
+      color: color-mix(in srgb, var(--unit-color) 78%, #fff);
+      text-align: left;
+      cursor: pointer;
+    }
+    .raid-frame-unit::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 2px; background: var(--unit-color); }
+    .raid-frame-unit:hover { border-color: color-mix(in srgb, var(--unit-color) 70%, #fff); background-color: rgba(28, 36, 41, .96); }
+    .raid-frame-unit[aria-pressed="true"] { border-color: #d8c8ff; box-shadow: inset 0 0 0 1px rgba(216,200,255,.58); }
+    .raid-unit-name { min-width: 0; overflow: hidden; font-size: 9px; font-weight: 680; text-overflow: ellipsis; white-space: nowrap; }
+    .raid-unit-status { width: 6px; height: 6px; justify-self: end; border-radius: 50%; background: #67d784; box-shadow: 0 0 0 1px rgba(255,255,255,.35); color: transparent; font-size: 0; }
+    .raid-frame-unit.is-dead { border-color: #4f565a; background: rgba(20,24,26,.9); color: #777f84; filter: grayscale(.8); opacity: .62; }
+    .raid-frame-unit.is-dead::before { background: #666d71; }
+    .raid-frame-unit.is-dead .raid-unit-name { text-decoration: line-through; text-decoration-color: rgba(255,100,100,.75); }
+    .raid-frame-unit.is-dead .raid-unit-status { width: 8px; height: auto; border-radius: 0; background: transparent; box-shadow: none; color: #ff7772; font-size: 11px; font-weight: 800; line-height: 1; }
+
+    .timeline {
+      position: relative;
+      overflow: hidden;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: #0b1013;
+    }
+    .timeline-axis { position: absolute; inset: 0 14px; }
+    .phase-bands { position: absolute; top: 4px; right: 0; left: 0; height: 22px; display: flex; gap: 1px; }
+    .phase-band {
+      min-width: 0;
+      height: 22px;
+      overflow: hidden;
+      padding: 0 5px;
+      border: 1px solid color-mix(in srgb, var(--phase-color) 72%, #dbe4e8 12%);
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--phase-color) 26%, #0b1013);
+      color: #edf2f4;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 20px;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .phase-band:hover { background: color-mix(in srgb, var(--phase-color) 36%, #0b1013); }
+    .phase-band[aria-current="true"] { box-shadow: inset 0 -2px 0 var(--phase-color); background: color-mix(in srgb, var(--phase-color) 42%, #0b1013); }
+    .phase-band.is-slim { padding: 0; color: transparent; }
+    .timeline-line { position: absolute; top: 50px; right: 0; left: 0; height: 2px; background: #4c575d; }
+    .timeline-progress { position: absolute; top: 50px; left: 0; height: 2px; width: 0; background: #8b6bea; }
+    .tick-label { position: absolute; top: 30px; transform: translateX(-50%); color: var(--quiet); font-family: var(--mono); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .marker-button {
+      position: absolute;
+      top: 44px;
+      width: 44px;
+      height: 70px;
+      padding: 0;
+      transform: translateX(-50%);
+      border: 0;
+      background: transparent;
+      color: #c2c9cd;
+      cursor: pointer;
+    }
+    .marker-button::before { content: ""; position: absolute; top: 2px; left: 18px; width: 7px; height: 7px; transform: rotate(45deg); border: 1px solid rgba(255,255,255,.65); background: currentColor; transition: transform .1s ease; }
+    .marker-button:hover::before, .marker-button:focus-visible::before { transform: rotate(45deg) scale(1.45); border-color: #fff; }
+    .marker-button::after { content: ""; position: absolute; top: 14px; bottom: 0; left: 21px; width: 1px; background: rgba(115,128,136,.22); }
+    .marker-button span { position: absolute; top: 25px; left: 50%; max-width: 82px; transform: translateX(-50%); color: currentColor; font-size: 9px; line-height: 1.15; white-space: nowrap; }
+    .marker-button[data-lane="1"] span { top: 43px; }
+    .marker-button[data-type="malice"] { color: var(--accent); }
+    .marker-button[data-type="bombardment"], .marker-button[data-type="iron-star"] { color: #ff735f; }
+    .marker-button[data-type="death"], .marker-button[data-type="wipe"] { color: #ef5a6f; }
+    .marker-button[data-type="kill"] { color: #dce3e6; }
+    .playhead { position: absolute; top: 41px; bottom: 0; left: 0; width: 1px; background: #fff; pointer-events: none; }
+    .playhead::before { content: ""; position: absolute; top: 5px; left: -4px; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
+    .playhead-label { position: absolute; top: 28px; left: 0; transform: translateX(-50%); padding: 3px 5px; border-radius: 4px; background: #f4f6f7; color: #111518; font-family: var(--mono); font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
+
+    .transport {
+      display: grid;
+      grid-template-columns: auto auto minmax(180px, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #0b1013;
+    }
+    .play-button {
+      min-width: 116px;
+      min-height: 48px;
+      padding: 0 18px;
+      border: 1px solid #9b85ef;
+      border-radius: 7px;
+      background: #5d43bd;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 720;
+      cursor: pointer;
+    }
+    .play-button:hover { background: #6a4dcc; }
+    .speed-group, .jump-group { display: flex; overflow: hidden; border: 1px solid var(--border-strong); border-radius: 7px; }
+    .speed-button, .transport-button { min-width: 54px; min-height: 46px; padding: 0 12px; border: 0; border-right: 1px solid var(--border-strong); border-radius: 0; }
+    .speed-button:last-child, .transport-button:last-child { border-right: 0; }
+    .speed-button[aria-pressed="true"] { background: #3a2c6f; color: #fff; box-shadow: inset 0 0 0 1px #8268d6; }
+    .scrubber-wrap { min-width: 0; display: grid; grid-template-columns: auto minmax(80px, 1fr) auto; align-items: center; gap: 10px; }
+    .scrubber-time { color: var(--muted); font-family: var(--mono); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .scrubber {
+      width: 100%;
+      height: 26px;
+      margin: 0;
+      accent-color: #8d6ee7;
+      cursor: pointer;
+    }
+    .method-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 0 12px;
+      border-top: 1px solid #1d262b;
+      color: #78858c;
+      font-size: 10px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .method-line .caveat-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .method-line a { flex: 0 0 auto; margin-left: 5px; color: #9eaab0; text-decoration: underline; text-decoration-color: #536068; text-underline-offset: 2px; }
+
+    .inspector { grid-template-rows: auto auto auto auto minmax(0, 1fr); }
+    .selected-card { padding: 14px; border-bottom: 1px solid var(--border); }
+    .selected-identity { display: grid; grid-template-columns: 12px minmax(0, 1fr); align-items: center; gap: 10px; }
+    .selected-identity .class-dot { width: 11px; height: 11px; }
+    .selected-name { margin: 0; overflow: hidden; font-size: 18px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
+    .selected-class { margin-top: 1px; color: var(--muted); font-size: 12px; }
+    .toggle-row { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 14px; }
+    .check-label { display: inline-flex; min-height: 34px; align-items: center; gap: 8px; color: #c7ced2; font-size: 12px; cursor: pointer; }
+    .check-label input { width: 17px; height: 17px; margin: 0; accent-color: #8568dc; }
+    .trail-select { height: 32px; padding: 0 28px 0 8px; border: 1px solid var(--border); border-radius: 5px; background: #0a0f12; color: #cbd2d6; font-size: 11px; }
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
+    .metric { min-width: 0; padding: 10px 12px; border-right: 1px solid #20292e; border-bottom: 1px solid #20292e; }
+    .metric:nth-child(2n) { border-right: 0; }
+    .metric-label { color: var(--quiet); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+    .metric-value { margin-top: 3px; overflow: hidden; color: #e5eaec; font-family: var(--mono); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .health-track { height: 4px; margin-top: 5px; overflow: hidden; border-radius: 4px; background: #273137; }
+    .health-fill { width: 0; height: 100%; background: #75d68c; }
+    .last-event { min-height: 44px; display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .last-event-label { color: var(--quiet); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+    .last-event-value { overflow: hidden; color: #d5c8ff; font-size: 12px; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+    .event-section { min-height: 0; display: grid; grid-template-rows: 44px minmax(0, 1fr); }
+    .event-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--border); }
+    .event-head h3 { margin: 0; font-size: 13px; font-weight: 650; }
+    .event-filter { height: 30px; padding: 0 8px; border: 1px solid var(--border); border-radius: 5px; background: #0a0f12; color: #cbd2d6; font-size: 11px; }
+    .event-list { min-height: 0; overflow: auto; padding: 4px; scrollbar-color: #455159 transparent; }
+    .event-row {
+      width: 100%;
+      min-height: 34px;
+      display: grid;
+      grid-template-columns: 62px 10px minmax(0, 1fr);
+      align-items: center;
+      gap: 7px;
+      padding: 4px 7px;
+      border: 0;
+      border-bottom: 1px solid #20292e;
+      background: transparent;
+      color: #cfd5d8;
+      text-align: left;
+      cursor: pointer;
+    }
+    .event-row:hover { background: #141b1f; }
+    .event-row.is-future { opacity: .5; }
+    .event-row.is-future:hover, .event-row.is-future:focus-visible { opacity: .9; }
+    .event-row.is-now { background: #141a22; box-shadow: inset 2px 0 0 #8d6ee7; }
+    .event-time { color: #8c999f; font-family: var(--mono); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .event-dot { width: 7px; height: 7px; transform: rotate(45deg); border-radius: 1px; background: var(--accent); }
+    .event-row[data-type="bombardment"] .event-dot, .event-row[data-type="iron-star"] .event-dot { background: #ff735f; }
+    .event-row[data-type="malice-pulse"] .event-dot { border-radius: 50%; background: #f7c46a; }
+    .event-row[data-type="death"] .event-dot { background: #ef5a6f; }
+    .event-row[data-type="kill"] .event-dot { background: #dce3e6; }
+    .event-row[data-type="wipe"] .event-dot { background: #ef5a6f; }
+    .event-copy { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+
+    .drawer-backdrop { display: none; position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.58); backdrop-filter: blur(2px); }
+
+    @media (max-width: 1180px) {
+      .workspace { grid-template-columns: 220px minmax(390px, 1fr) 286px; }
+      .transport { grid-template-columns: auto auto minmax(140px, 1fr); }
+      .jump-group { display: none; }
+      .top-phase { gap: 12px; }
+      .topbar { grid-template-columns: minmax(240px,1fr) auto; }
+    }
+
+    @media (max-width: 860px) and (orientation: portrait) {
+      body { overflow: auto; }
+      #app { min-height: 100dvh; height: auto; grid-template-rows: auto auto; }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        min-height: 68px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: 8px 10px 8px 14px;
+      }
+      .brand h1 { font-size: 19px; }
+      .brand p { font-size: 11px; }
+      .top-phase { display: none; }
+      .top-actions { gap: 6px; }
+      .top-actions .source-action, .top-actions .shortcuts-action { display: none; }
+      .raid-toggle { min-width: 54px; min-height: 48px; padding: 0 9px; flex-direction: column; gap: 1px; font-size: 9px; }
+      .raid-toggle .icon { width: 19px; height: 19px; }
+      .mobile-toggle { display: inline-flex; width: auto; min-width: 54px; min-height: 48px; padding: 0 10px; flex-direction: column; gap: 1px; font-size: 9px; }
+      .mobile-toggle .icon { width: 19px; height: 19px; }
+      .workspace { display: block; overflow: visible; background: var(--surface); }
+      .stage { min-height: calc(100dvh - 68px); grid-template-rows: minmax(420px, 58svh) 96px auto minmax(38px, auto); overflow: visible; }
+      .arena-card { grid-template-rows: 58px minmax(0, 1fr); }
+      .arena-head { grid-template-columns: 1fr auto; grid-template-rows: auto auto; padding: 6px 10px; gap: 1px 7px; }
+      .arena-title { font-size: 14px; }
+      .arena-space { display: none; }
+      .arena-mechanic { grid-column: 1 / -1; grid-row: 2; display: inline-flex; justify-content: flex-start; justify-self: start; min-height: 20px; padding: 0 8px; font-size: 10px; }
+      .time-readout { font-size: 11px; }
+      .time-readout strong { font-size: 16px; }
+      #arenaCanvas { min-height: 360px; }
+      .canvas-note { top: 8px; left: 8px; font-size: 8px; }
+      .arena-legend { display: none; }
+      .iron-clump-card { top: 8px; right: 8px; width: min(286px, calc(100% - 16px)); }
+      .iron-clump-member { min-height: 44px; }
+      .raid-frame-panel {
+        position: fixed;
+        z-index: 45;
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-height: 74dvh;
+        overflow: auto;
+        padding: 10px max(10px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+        border-radius: 12px 12px 0 0;
+        background: rgba(8, 12, 15, .98);
+      }
+      .raid-frame-head { min-height: 44px; padding-bottom: 6px; }
+      .raid-frame-close { width: 44px; height: 44px; }
+      .raid-frame-grid { gap: 2px; }
+      .raid-frame-unit { height: 44px; padding-right: 5px; padding-left: 7px; }
+      .raid-unit-name { font-size: 9px; }
+      .canvas-tools { bottom: 8px; right: 8px; }
+      .canvas-tools .icon-button { width: 44px; min-height: 44px; }
+      .canvas-tools .zoom-value-button { width: 64px; }
+      .canvas-gesture-hint { right: 8px; bottom: 66px; }
+      .timeline-axis { inset: 0 10px; }
+      .tick-label:nth-of-type(even) { display: none; }
+      .marker-button span { display: none; }
+      .transport {
+        position: sticky;
+        bottom: 0;
+        z-index: 15;
+        grid-template-columns: minmax(112px, auto) 1fr;
+        gap: 8px;
+        padding: 9px 10px calc(9px + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--border-strong);
+        box-shadow: 0 -10px 24px rgba(0,0,0,.3);
+      }
+      .play-button { min-width: 110px; }
+      .speed-group { min-width: 0; }
+      .speed-button { min-width: 0; flex: 1; padding: 0 8px; }
+      .scrubber-wrap { grid-column: 1 / -1; grid-row: 1; grid-template-columns: auto minmax(90px,1fr) auto; }
+      .play-button, .speed-group { grid-row: 2; }
+      .method-line { min-height: 38px; overflow: visible; padding: 6px 10px; font-size: 9px; line-height: 1.25; text-align: center; text-overflow: clip; white-space: normal; }
+      .method-line .caveat-text { overflow: visible; text-overflow: clip; white-space: normal; }
+      .rail {
+        position: fixed;
+        z-index: 40;
+        visibility: hidden;
+        opacity: 0;
+        transition: transform .18s ease, opacity .18s ease;
+        box-shadow: var(--shadow);
+      }
+      .roster {
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: min(88vw, 360px);
+        transform: translateX(-102%);
+      }
+      .inspector {
+        right: 0;
+        bottom: 0;
+        left: 0;
+        max-height: 74dvh;
+        grid-template-rows: auto auto auto auto minmax(180px, 1fr);
+        transform: translateY(102%);
+        border-radius: 12px 12px 0 0;
+      }
+      .rail.is-open { visibility: visible; opacity: 1; transform: translate(0,0); }
+      .drawer-close { display: inline-flex; }
+      .drawer-backdrop.is-open { display: block; }
+      .selected-card { padding: 12px; }
+      .selected-name { font-size: 17px; }
+      .metric { padding: 8px 10px; }
+      .event-list { max-height: 32dvh; }
+    }
+
+    @media (max-width: 1000px) and (max-height: 620px) and (orientation: landscape) {
+      :root { --topbar-h: 52px; --control-h: 38px; }
+      #app { min-height: 360px; }
+      .topbar { grid-template-columns: minmax(180px,auto) minmax(0,1fr) auto; padding: 0 10px; gap: 10px; }
+      .brand h1 { font-size: 17px; }
+      .brand p { display: none; }
+      .top-phase { display: flex; justify-content: flex-end; gap: 0; font-size: 11px; }
+      .top-phase .phase-name, .top-phase .current-mechanic { display: none; }
+      .mobile-toggle { display: inline-flex; width: auto; padding: 0 10px; }
+      .raid-toggle { width: 42px; padding: 0; }
+      .raid-toggle span { display: none; }
+      .source-action, .shortcuts-action { display: none; }
+      .workspace { grid-template-columns: minmax(430px,1fr) 308px; }
+      .roster { display: none; }
+      .stage { grid-column: 1; grid-row: 1; grid-template-rows: minmax(160px,1fr) 56px 50px 18px; }
+      .inspector { grid-column: 2; grid-row: 1; }
+      .arena-card { grid-template-rows: minmax(0,1fr); }
+      .arena-head { display: none; }
+      .arena-title { font-size: 13px; }
+      .arena-mechanic { font-size: 11px; }
+      .time-readout, .time-readout strong { font-size: 11px; }
+      #arenaCanvas { min-height: 150px; }
+      .canvas-note { display: none; }
+      .arena-legend { left: 7px; bottom: 7px; gap: 3px; padding: 5px 7px; font-size: 8px; }
+      .iron-clump-card { top: 6px; right: 6px; width: min(310px, calc(100% - 12px)); border-radius: 6px; }
+      .iron-clump-head { padding: 5px 7px 4px 10px; }
+      .iron-clump-title { font-size: 10px; }
+      .iron-clump-count { min-height: 20px; font-size: 8px; }
+      .iron-clump-meta, .iron-clump-note { display: none; }
+      .iron-clump-members { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 4px; padding: 5px 6px 6px; }
+      .iron-clump-member { min-height: 23px; padding: 1px 3px; grid-template-columns: 16px minmax(0, 1fr); }
+      .clump-rank { width: 16px; height: 16px; font-size: 8px; }
+      .clump-name { font-size: 8px; }
+      .clump-distance { display: none; }
+      .raid-frame-panel {
+        position: fixed;
+        z-index: 45;
+        top: var(--topbar-h);
+        right: 0;
+        bottom: 0;
+        left: auto;
+        width: 308px;
+        max-height: none;
+        overflow: auto;
+        padding: 8px;
+        border-radius: 0;
+        background: rgba(8, 12, 15, .98);
+      }
+      .raid-frame-head { min-height: 40px; padding-bottom: 4px; font-size: 9px; }
+      .raid-frame-head strong, .raid-frame-summary { font-size: 9px; }
+      .raid-frame-close { width: 40px; height: 40px; font-size: 17px; }
+      .raid-frame-grid { gap: 3px; }
+      .raid-frame-unit { height: 40px; padding: 0 4px 0 6px; grid-template-columns: minmax(0, 1fr) 8px; }
+      .raid-unit-name { font-size: 8px; }
+      body.raid-mobile-open .inspector { visibility: hidden; }
+      .canvas-tools { right: 6px; bottom: 6px; padding: 2px; }
+      .canvas-tools .icon-button { width: 38px; min-height: 38px; }
+      .canvas-tools .zoom-value-button { width: 54px; }
+      .canvas-gesture-hint { display: none; }
+      .timeline-line, .timeline-progress { top: 20px; }
+      .tick-label { top: 2px; font-size: 8px; }
+      .marker-button { top: 14px; height: 41px; }
+      .marker-button span { top: 19px; font-size: 8px; }
+      .marker-button[data-lane="1"] span { top: 31px; }
+      .playhead { top: 12px; }
+      .playhead-label { top: 1px; font-size: 8px; }
+      .transport { grid-template-columns: auto auto minmax(120px,1fr); padding: 3px 10px; gap: 8px; }
+      .play-button { min-width: 96px; min-height: 42px; }
+      .speed-button { min-height: 40px; }
+      .jump-group { display: none; }
+      .scrubber-time { font-size: 9px; }
+      .method-line { font-size: 8px; }
+      .rail-head { min-height: 44px; }
+      .selected-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 10px; }
+      .selected-name { font-size: 16px; }
+      .selected-class { font-size: 10px; }
+      .toggle-row { margin-top: 0; flex-wrap: nowrap; gap: 7px; }
+      .toggle-row .check-label { min-height: 30px; gap: 4px; font-size: 10px; white-space: nowrap; }
+      .toggle-row .check-label input { width: 16px; height: 16px; }
+      .check-label[for="trailLength"] { display: none; }
+      .metric { padding: 5px 7px; }
+      .health-metric { display: none; }
+      .last-event { min-height: 38px; padding: 5px 9px; }
+      .event-section { grid-template-rows: 36px minmax(0,1fr); overflow: hidden; }
+      .event-head { padding: 0 9px; }
+      .event-row { min-height: 29px; grid-template-columns: 56px 8px minmax(0,1fr); padding: 3px 5px; }
+      .drawer-backdrop { display: none !important; }
+    }
+
+    @media (max-width: 1000px) and (max-height: 620px) and (orientation: landscape) {
+      .phase-bands { top: 1px; height: 15px; }
+      .phase-band { height: 15px; padding: 0 2px; border-radius: 2px; font-size: 7px; line-height: 13px; }
+      .timeline-line, .timeline-progress { top: 29px; }
+      .tick-label { top: 16px; font-size: 7px; }
+      .marker-button { top: 23px; height: 32px; }
+      .marker-button span, .marker-button[data-lane="1"] span { display: none; }
+      .playhead { top: 20px; }
+      .playhead-label { top: 15px; font-size: 7px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Garrosh Full Fight Replay</h1>
+        <div class="brand-meta">
+          <p id="reportLine">Loading fight data…</p>
+          <a class="raid-series-link" id="raidSeriesLink" href="raid.html" aria-label="Open all pulls from this raid" hidden>All pulls</a>
+        </div>
+      </div>
+      <div class="top-phase" aria-label="Current replay state">
+        <span class="phase-name">Phase 4 — Stormwind</span>
+        <span class="current-mechanic"><span class="mechanic-glyph" aria-hidden="true"></span><span id="topMechanic">P4 positioning</span></span>
+        <span class="top-time" id="topTime">6:38.301</span>
+      </div>
+      <div class="top-actions">
+        <a class="text-button source-action" id="sourceLink" target="_blank" rel="noreferrer" aria-label="Open source report on Warcraft Logs">
+          <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 5h5v5M10 14 19 5M19 13v6H5V5h6"/></svg>
+          Source
+        </a>
+        <button class="text-button raid-toggle" id="raidFramesToggle" type="button" aria-controls="raidFramePanel" aria-pressed="false" aria-label="Toggle raid frames" title="Toggle raid frames (G)">
+          <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="6" rx="1"/><rect x="13" y="4" width="8" height="6" rx="1"/><rect x="3" y="14" width="8" height="6" rx="1"/><rect x="13" y="14" width="8" height="6" rx="1"/></svg>
+          <span>Raid</span>
+        </button>
+        <button class="icon-button shortcuts-action" id="shortcutsButton" type="button" aria-label="Show keyboard shortcuts" title="Keyboard shortcuts">
+          <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h6M17 14h.01"/></svg>
+        </button>
+        <button class="icon-button mobile-toggle" id="playersToggle" type="button" aria-controls="roster" aria-expanded="false">
+          <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Players</span>
+        </button>
+        <button class="icon-button mobile-toggle" id="eventsToggle" type="button" aria-controls="inspector" aria-expanded="false">
+          <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          <span>Events</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="rail roster" id="roster" aria-label="Player roster">
+        <div class="rail-head">
+          <h2 class="rail-title">
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Players <span class="count" id="playerCount">25</span>
+          </h2>
+          <button class="icon-button drawer-close" id="rosterClose" type="button" aria-label="Close player roster">
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m18 6-12 12M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="roster-body">
+          <div class="search-wrap">
+            <label class="sr-only" for="playerSearch">Search players</label>
+            <input class="search-input" id="playerSearch" type="search" placeholder="Search players" autocomplete="off">
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          </div>
+          <div class="player-list" id="playerList" role="listbox" aria-label="Players in fight"></div>
+          <div class="roster-foot" id="rosterFoot">25 coordinate tracks · WCL event resources</div>
+        </div>
+      </aside>
+
+      <main class="stage">
+        <section class="arena-card" aria-labelledby="arenaHeading">
+          <div class="arena-head">
+            <div class="arena-title-wrap">
+              <div class="arena-title" id="arenaHeading">Phase 4 — Stormwind</div>
+              <div class="arena-space" id="arenaSpace">Stormwind Harbor — Phase 4</div>
+            </div>
+            <div class="arena-mechanic" data-kind="calm"><span class="mechanic-glyph" aria-hidden="true"></span><span id="arenaMechanic">P4 positioning</span></div>
+            <div class="time-readout"><strong id="currentTime">6:38.282</strong> <span>/ <span id="endTime">7:58.271</span></span></div>
+          </div>
+          <div class="canvas-wrap" id="canvasWrap">
+            <canvas id="arenaCanvas" tabindex="0" role="img" aria-label="Top-down replay of player and enemy positions on the calibrated Stormwind Harbor map in Garrosh Phase 4" aria-describedby="canvasSummary canvasCaveat"></canvas>
+            <p class="sr-only" id="canvasSummary"></p>
+            <p class="sr-only" id="replayAnnouncement" aria-live="polite" aria-atomic="true"></p>
+            <section class="raid-frame-panel" id="raidFramePanel" aria-label="Raid frames" hidden>
+              <div class="raid-frame-head">
+                <strong>Raid</strong>
+                <span class="raid-frame-summary" id="raidFrameSummary">25 alive</span>
+                <button class="raid-frame-close" id="raidFrameClose" type="button" aria-label="Hide raid frames" title="Hide raid frames">&times;</button>
+              </div>
+              <div class="raid-frame-grid" id="raidFrameGrid"></div>
+            </section>
+            <section class="iron-clump-card" id="ironClumpCard" aria-label="Reconstructed Iron Star trigger clump" hidden>
+              <div class="iron-clump-head">
+                <div>
+                  <div class="iron-clump-kicker">IRON STAR CHECK</div>
+                  <div class="iron-clump-title" id="ironClumpTitle">Trigger clump</div>
+                </div>
+                <span class="iron-clump-count" id="ironClumpCount">7 players</span>
+              </div>
+              <div class="iron-clump-meta" id="ironClumpMeta">8 yd check radius</div>
+              <div class="iron-clump-members" id="ironClumpMembers"></div>
+              <div class="iron-clump-note" id="ironClumpNote"></div>
+            </section>
+            <div class="canvas-note">WOW CLIENT MAP · CALIBRATED TO WCL</div>
+            <div class="arena-legend" aria-hidden="true">
+              <div class="legend-row"><span class="legend-mark malice"></span>Malice target</div>
+              <div class="legend-row"><span class="legend-mark player"></span>Player sample</div>
+              <div class="legend-row"><span class="legend-mark hostile"></span>Hostile actor</div>
+              <div class="legend-row"><span class="legend-mark trail"></span>Logged trail</div>
+            </div>
+            <div class="canvas-gesture-hint" id="canvasGestureHint" aria-hidden="true">
+              <span class="mouse-copy">Scroll to zoom · drag to pan</span>
+              <span class="touch-copy">Pinch to zoom · drag to pan</span>
+            </div>
+            <div class="canvas-tools" role="group" aria-label="Arena view controls">
+              <button class="icon-button" id="zoomOut" type="button" aria-label="Zoom out" title="Zoom out">
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
+              </button>
+              <button class="icon-button zoom-value-button" id="resetView" type="button" aria-label="Reset arena view. Current zoom 100%" title="Reset arena view">
+                <span id="zoomValue">100%</span>
+              </button>
+              <button class="icon-button" id="zoomIn" type="button" aria-label="Zoom in" title="Zoom in">
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="timeline" aria-label="Full fight mechanic timeline">
+          <div class="timeline-axis" id="timelineAxis">
+            <div class="phase-bands" id="phaseBands"></div>
+            <div class="timeline-line"></div>
+            <div class="timeline-progress" id="timelineProgress"></div>
+            <div id="timelineTicks"></div>
+            <div id="timelineMarkers"></div>
+            <div class="playhead" id="playhead"></div>
+            <div class="playhead-label" id="playheadLabel">6:38.282</div>
+          </div>
+        </section>
+
+        <section class="transport" aria-label="Replay controls">
+          <button class="play-button" id="playButton" type="button" aria-label="Play replay">
+            <span id="playButtonText">Play</span>
+          </button>
+          <div class="speed-group" aria-label="Playback speed">
+            <button class="speed-button" type="button" data-speed="0.5" aria-pressed="false">0.5×</button>
+            <button class="speed-button" type="button" data-speed="1" aria-pressed="true">1×</button>
+            <button class="speed-button" type="button" data-speed="2" aria-pressed="false">2×</button>
+          </div>
+          <div class="scrubber-wrap">
+            <span class="scrubber-time" id="scrubberStart">6:11.574</span>
+            <label class="sr-only" for="scrubber">Replay time</label>
+            <input class="scrubber" id="scrubber" type="range" step="1">
+            <span class="scrubber-time" id="scrubberEnd">7:58.271</span>
+          </div>
+          <div class="jump-group" aria-label="Jump replay time">
+            <button class="transport-button" id="back10" type="button" aria-label="Jump back 10 seconds">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m11 17-5-5 5-5M18 17l-5-5 5-5"/></svg>10s
+            </button>
+            <button class="transport-button" id="forward10" type="button" aria-label="Jump forward 10 seconds">10s<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m13 17 5-5-5-5M6 17l5-5-5-5"/></svg></button>
+          </div>
+        </section>
+        <footer class="method-line" id="canvasCaveat"><span class="caveat-text">Calibrated map plates use WCL coordinates as positional truth. </span><a id="methodLink" href="#method">WCL source log</a></footer>
+      </main>
+
+      <aside class="rail inspector" id="inspector" aria-label="Selected player and event details">
+        <div class="rail-head">
+          <h2 class="rail-title">
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+            Selected player
+          </h2>
+          <button class="icon-button drawer-close" id="inspectorClose" type="button" aria-label="Close selected player details">
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m18 6-12 12M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <section class="selected-card">
+          <div class="selected-identity">
+            <span class="class-dot" id="selectedDot"></span>
+            <div>
+              <h3 class="selected-name" id="selectedName">Milãn</h3>
+              <div class="selected-class" id="selectedClass">Priest</div>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <label class="check-label"><input id="followSelected" type="checkbox" checked>Follow selected</label>
+            <label class="check-label"><input id="trailsToggle" type="checkbox" checked>Trails</label>
+            <label class="check-label" for="trailLength">Length
+              <select class="trail-select" id="trailLength">
+                <option value="5000">5s</option>
+                <option value="10000" selected>10s</option>
+                <option value="20000">20s</option>
+              </select>
+            </label>
+          </div>
+        </section>
+        <section class="metric-grid" aria-label="Selected player metrics">
+          <div class="metric"><div class="metric-label">Local coordinate</div><div class="metric-value" id="coordinateValue">—</div></div>
+          <div class="metric"><div class="metric-label">Distance to boss</div><div class="metric-value" id="distanceValue">—</div></div>
+          <div class="metric"><div class="metric-label">Sample age</div><div class="metric-value" id="sampleAgeValue">—</div></div>
+          <div class="metric"><div class="metric-label">Mechanic status</div><div class="metric-value" id="maliceValue">Inactive</div></div>
+          <div class="metric health-metric" style="grid-column: 1 / -1"><div class="metric-label">Health at sample</div><div class="metric-value" id="healthValue">—</div><div class="health-track"><div class="health-fill" id="healthFill"></div></div></div>
+        </section>
+        <div class="last-event"><span class="last-event-label">Last cast</span><span class="last-event-value" id="lastEventValue">—</span></div>
+        <section class="event-section">
+          <div class="event-head">
+            <h3>Event feed</h3>
+            <label class="sr-only" for="eventFilter">Filter events</label>
+            <select class="event-filter" id="eventFilter">
+              <option value="all">All mechanics</option>
+            </select>
+          </div>
+          <div class="event-list" id="eventList"></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <dialog id="shortcutsDialog" style="max-width:520px;border:1px solid #3a464d;border-radius:8px;background:#10171b;color:#f4f6f7;box-shadow:0 24px 60px rgba(0,0,0,.55)">
+    <form method="dialog" style="padding:18px;display:grid;gap:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px"><strong style="font-size:18px">Keyboard shortcuts</strong><button class="icon-button" aria-label="Close shortcuts"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m18 6-12 12M6 6l12 12"/></svg></button></div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;color:#cbd2d6"><code>Space</code><span>Play or pause</span><code>← / →</code><span>Step 1 second</span><code>Shift + ← / →</code><span>Jump 10 seconds</span><code>[ / ]</code><span>Previous or next player</span><code>+ / −</code><span>Zoom arena in or out</span><code>0</code><span>Reset arena view and follow player</span><code>T</code><span>Toggle trails</span><code>R</code><span>Return to fight start</span><code>Esc</code><span>Close overlays</span></div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;color:#cbd2d6"><code>G</code><span>Toggle raid frames</span></div>
+    </form>
+  </dialog>
+
+  <script>
+"use strict";
+
+const DATA = {"schemaVersion":2,"generatedUTC":"2026-07-18T22:14:40.137992+00:00","report":{"code":"9t1qBvag2DcpV3zM","url":"https://classic.warcraftlogs.com/reports/9t1qBvag2DcpV3zM?fight=49","title":"Siege of Orgrimmar","zone":{"id":1054,"name":"Siege of Orgrimmar"}},"fight":{"id":49,"name":"Garrosh Hellscream","difficulty":4,"size":25,"kill":false,"start":0,"end":29168,"duration":29168},"phases":[{"id":"p1","label":"P1 - True Horde","short":"P1","start":0,"end":29168,"spaceId":"orgrimmar_main","color":"#d97745","filters":["adds","desecrate","iron-star"]}],"spaces":{"orgrimmar_main":{"id":"orgrimmar_main","label":"Orgrimmar — Inner Sanctum","mapId":567,"bounds":{"minX":552800,"maxX":574600,"minY":99900,"maxY":112300},"worldRect":{"x":0.1,"y":0.08,"width":0.8,"height":0.84},"screenAxes":{"horizontal":"x","vertical":"y","invertHorizontal":false,"invertVertical":true},"imageFit":"contain","background":"garrosh_main_arena_overhead_v1.png","orientation":"Client-map orientation: log X runs left-to-right and log Y runs bottom-to-top.","note":"Both side engineer platforms are included; transient Realm-return coordinates are clipped, not used to stretch the art."}},"actors":[{"key":"15:0","id":15,"instance":0,"name":"Belmodqt","type":"Player","class":"Shaman","kind":"player","color":"#0070DD","segments":[{"spaceId":"orgrimmar_main","start":13314,"end":29168,"lastEvidenceT":17937,"startReason":"initial","endReason":"fight-end","points":[[13314,564375,108619,-493,73,100],[14834,564375,108619,-493,49,100],[15835,564375,108619,-493,25,100],[16139,564375,108619,-493,0,100]]}]},{"key":"23:0","id":23,"instance":0,"name":"Bosspercent","type":"Player","class":"DeathKnight","kind":"player","color":"#C41E3A","segments":[{"spaceId":"orgrimmar_main","start":10047,"end":29168,"lastEvidenceT":27980,"startReason":"initial","endReason":"fight-end","points":[[10047,563506,107701,-538,89,100],[11046,563506,107701,-538,81,100],[12064,563506,107701,-538,72,100],[13065,563506,107701,-538,64,100],[13315,563506,107701,-538,52,100],[14061,563506,107701,-538,44,100],[14834,563506,107701,-538,32,100],[15085,563506,107701,-538,24,100],[15836,563506,107701,-538,14,100],[16100,563506,107701,-538,8,100],[17069,563506,107701,-538,2,100],[17838,563506,107701,-538,0,100],[20089,563506,107701,-538,0,100]]}]},{"key":"5:0","id":5,"instance":0,"name":"Bäphomet","type":"Player","class":"Rogue","kind":"player","color":"#FFF468","segments":[{"spaceId":"orgrimmar_main","start":4357,"end":29168,"lastEvidenceT":25444,"startReason":"initial","endReason":"fight-end","points":[[4357,564661,108601,-457,100,100]]}]},{"key":"36:0","id":36,"instance":0,"name":"Callmepdiddy","type":"Player","class":"DeathKnight","kind":"player","color":"#C41E3A","segments":[{"spaceId":"orgrimmar_main","start":13315,"end":29168,"lastEvidenceT":16863,"startReason":"initial","endReason":"fight-end","points":[[13315,563709,108610,-265,71,100],[14834,563709,108610,-265,43,100],[15834,563709,108610,-265,14,100],[16853,563709,108610,-265,0,100]]}]},{"key":"3:0","id":3,"instance":0,"name":"Cladztyn","type":"Player","class":"Druid","kind":"player","color":"#FF7C0A","segments":[{"spaceId":"orgrimmar_main","start":13316,"end":29168,"lastEvidenceT":23427,"startReason":"initial","endReason":"fight-end","points":[[13316,565296,109236,-325,72,100],[14751,565436,108311,-341,78,100],[14837,565436,108311,-341,50,100],[15836,565461,107248,-295,24,100],[19754,559558,107580,-233,29,100],[22958,559115,108051,-233,29,100],[23427,559115,108051,-233,0,100]]}]},{"key":"8:0","id":8,"instance":0,"name":"Clampalafive","type":"Player","class":"Paladin","kind":"player","color":"#F48CBA","segments":[{"spaceId":"orgrimmar_main","start":13314,"end":29168,"lastEvidenceT":27981,"startReason":"initial","endReason":"fight-end","points":[[13314,563988,108904,-472,73,100],[14834,563988,108904,-472,46,100],[15834,563988,108904,-472,19,100],[16856,563988,108904,-472,0,100]]}]},{"key":"56:0","id":56,"instance":0,"name":"Cyzs","type":"Player","class":"Shaman","kind":"player","color":"#0070DD","segments":[{"spaceId":"orgrimmar_main","start":13315,"end":29168,"lastEvidenceT":19374,"startReason":"initial","endReason":"fight-end","points":[[13315,563857,108286,-339,72,100],[14883,562674,108298,-316,45,100],[15884,561943,108133,-321,17,100],[19071,561407,108079,-629,19,100],[19374,561407,108079,-629,0,100]]}]},{"key":"2:0","id":2,"instance":0,"name":"Dreklock","type":"Player","class":"Warlock","kind":"player","color":"#8788EE","segments":[{"spaceId":"orgrimmar_main","start":10047,"end":29168,"lastEvidenceT":27981,"startReason":"initial","endReason":"fight-end","points":[[10047,563694,107658,-446,88,100],[11046,563694,107658,-446,76,100],[12064,563694,107658,-446,64,100],[13065,563694,107658,-446,52,100],[13315,563694,107658,-446,34,100],[14061,563694,107658,-446,23,100],[14834,563694,107658,-446,5,100],[15084,563694,107658,-446,0,100]]}]},{"key":"51:0","id":51,"instance":0,"name":"Exarrow","type":"Player","class":"Hunter","kind":"player","color":"#AAD372","segments":[{"spaceId":"orgrimmar_main","start":10947,"end":29168,"lastEvidenceT":17737,"startReason":"initial","endReason":"fight-end","points":[[10947,564182,107363,-369,81,100],[11964,564182,107363,-369,61,100],[12883,564182,107363,-366,64,100],[12962,564182,107363,-366,45,100],[13315,564182,107363,-227,16,100],[13972,564182,107363,-192,0,100]]}]},{"key":"7:0","id":7,"instance":0,"name":"Gillasyum","type":"Player","class":"Paladin","kind":"player","color":"#F48CBA","segments":[{"spaceId":"orgrimmar_main","start":25045,"end":29168,"lastEvidenceT":28012,"startReason":"initial","endReason":"fight-end","points":[[25045,567941,110067,-337,65,100],[25076,567909,110059,-337,67,100],[26044,567238,109981,-328,49,100],[27044,566836,109921,-254,20,100],[27981,566634,109870,-251,0,100]]}]},{"key":"50:0","id":50,"instance":0,"name":"Klakche","type":"Player","class":"Rogue","kind":"player","color":"#FFF468","segments":[{"spaceId":"orgrimmar_main","start":13315,"end":29168,"lastEvidenceT":18839,"startReason":"initial","endReason":"fight-end","points":[[13315,564213,108683,-459,74,100],[14834,564213,108683,-459,48,100],[15835,564213,108683,-459,21,100],[16669,564213,108683,-459,25,100],[16857,564213,108683,-459,10,100],[17452,564213,108683,-438,7,100],[17839,564213,108683,-467,3,100],[18453,564213,108683,-455,1,100],[18824,564213,108683,-457,0,100]]}]},{"key":"19:0","id":19,"instance":0,"name":"Lamasup","type":"Player","class":"Priest","kind":"player","color":"#FFFFFF","segments":[{"spaceId":"orgrimmar_main","start":8,"end":29168,"lastEvidenceT":22959,"startReason":"initial","endReason":"fight-end","points":[[8,562397,106725,-486,100,100],[837,562168,106525,-243,100,100],[1754,561991,107145,-202,100,100],[2673,561653,107750,-211,100,100],[2691,561646,107763,-211,100,100],[3606,560842,109168,-209,100,100],[4523,559998,110648,-209,100,100],[5424,559140,112152,-209,100,100],[6342,558810,112733,-598,100,100],[7276,558841,112650,-507,100,100],[8012,559080,112008,-513,0,100]]}]},{"key":"271:0","id":271,"instance":0,"name":"Maddtwo","type":"Player","class":"Hunter","kind":"player","color":"#AAD372","segments":[{"spaceId":"orgrimmar_main","start":8411,"end":29168,"lastEvidenceT":15135,"startReason":"initial","endReason":"fight-end","points":[[8411,565037,108280,-676,100,100],[10946,564837,109121,-206,60,100],[12447,564592,109583,-206,19,100],[13315,564592,109583,-206,0,100]]}]},{"key":"13:0","id":13,"instance":0,"name":"Miaahh","type":"Player","class":"Priest","kind":"player","color":"#FFFFFF","segments":[{"spaceId":"orgrimmar_main","start":13315,"end":29168,"lastEvidenceT":16861,"startReason":"initial","endReason":"fight-end","points":[[13315,563971,108025,-453,74,100],[14834,563971,108025,-453,49,100],[15834,563971,108025,-453,24,100],[16852,563971,108025,-281,0,100]]}]},{"key":"6:0","id":6,"instance":0,"name":"Odium","type":"Player","class":"Warlock","kind":"player","color":"#8788EE","segments":[{"spaceId":"orgrimmar_main","start":10546,"end":29168,"lastEvidenceT":14836,"startReason":"initial","endReason":"fight-end","points":[[10546,563491,107359,-304,69,100],[11564,563491,107359,-304,54,100],[12564,563491,107359,-304,38,100],[13565,563491,107359,-304,23,100],[14568,563491,107359,-304,8,100],[14836,563491,107359,-304,0,100]]}]},{"key":"55:0","id":55,"instance":0,"name":"Silvanss","type":"Player","class":"Warrior","kind":"player","color":"#C69B6D","segments":[{"spaceId":"orgrimmar_main","start":13315,"end":29168,"lastEvidenceT":17839,"startReason":"initial","endReason":"fight-end","points":[[13315,563804,107833,-674,75,100],[14834,563804,107833,-674,50,100],[15835,563804,107833,-674,26,100],[16854,563804,107833,-674,1,100],[16864,563804,107833,-674,4,100],[17838,563804,107833,-674,0,100]]}]},{"key":"9:0","id":9,"instance":0,"name":"Smikkels","type":"Player","class":"Shaman","kind":"player","color":"#0070DD","segments":[{"spaceId":"orgrimmar_main","start":13315,"end":29168,"lastEvidenceT":27980,"startReason":"initial","endReason":"fight-end","points":[[13315,564007,108628,-242,72,100],[13816,563970,108658,-249,72,100],[14834,563970,108658,-249,44,100],[15834,563970,108658,-249,15,100],[16854,563970,108658,-249,0,100]]}]},{"key":"58:0","id":58,"instance":0,"name":"Soberup","type":"Player","class":"Paladin","kind":"player","color":"#F48CBA","segments":[{"spaceId":"orgrimmar_main","start":13314,"end":29168,"lastEvidenceT":27980,"startReason":"initial","endReason":"fight-end","points":[[13314,564178,108920,-461,72,100],[14199,564178,108920,-461,54,100],[14834,564178,108920,-461,28,100],[15217,564178,108920,-461,9,100],[15835,564178,108920,-461,0,100]]}]},{"key":"489:0","id":489,"instance":0,"name":"Garrosh Hellscream","type":"NPC","class":"Boss","kind":"boss","color":"#ff5b55","segments":[{"spaceId":"orgrimmar_main","start":4,"end":29168,"lastEvidenceT":27981,"startReason":"initial","endReason":"fight-end","points":[[4,563394,102860,-770,675889403,676012350],[837,562985,104076,-190,675885903,676012350],[1754,562578,105240,-194,675882402,676012350],[1892,562511,105415,-194,675860544,676012350],[2673,562154,106465,-190,675858794,676012350],[2888,562080,106704,-158,675815078,676012350],[3589,561686,107483,-212,675811577,676012350],[3889,561488,107856,-207,675767861,676012350],[4523,561073,108622,-202,675766111,676012350],[4890,560838,109072,-214,675722395,676012350],[5424,560486,109732,-206,675718894,676012350],[5892,560171,110307,-212,675675178,676012350],[6342,559869,110834,-208,675671678,676012350],[7276,559224,111997,-211,675669927,676012350],[8010,559192,112053,-213,675669927,676012350],[11263,561094,110833,-571,675669927,676012350],[14935,563604,109591,-538,675647895,676012350],[15418,563836,109301,-542,675628524,676012350],[15934,563894,109233,-538,675582477,676012350],[18422,563053,108843,-358,675503765,676012350],[19371,562114,108407,-358,675503765,676012350],[22491,562114,108407,-358,675503765,676012350],[27979,565916,109567,-669,675503765,676012350]]}]},{"key":"491:0","id":491,"instance":0,"name":"Desecrated Weapon","type":"NPC","class":"NPC","kind":"weapon","color":"#a56af2","segments":[{"spaceId":"orgrimmar_main","start":13799,"end":22841,"lastEvidenceT":20841,"startReason":"initial","endReason":"last-event-grace","points":[[13799,564213,108683,-459,22576251,22576251],[15418,564213,108683,-459,22344256,22576251],[17403,564213,108683,-459,22283482,22576251]]}]},{"key":"490:1","id":490,"instance":1,"name":"Kor'kron Warbringer","type":"NPC","class":"NPC","kind":"add","color":"#ef6b5f","segments":[{"spaceId":"orgrimmar_main","start":10046,"end":25425,"lastEvidenceT":23425,"startReason":"initial","endReason":"last-event-grace","points":[[10046,563410,107631,-648,26412739,26412739],[11046,563360,107619,-648,26412739,26412739],[13065,563360,107619,-648,26412739,26412739],[15068,563360,107619,-648,26412739,26412739],[17069,563360,107619,-648,26412739,26412739],[19087,563360,107619,-648,26412739,26412739]]}]},{"key":"490:2","id":490,"instance":2,"name":"Kor'kron Warbringer","type":"NPC","class":"NPC","kind":"add","color":"#ef6b5f","segments":[{"spaceId":"orgrimmar_main","start":10046,"end":25425,"lastEvidenceT":23425,"startReason":"initial","endReason":"last-event-grace","points":[[10046,563478,107158,-645,26412739,26412739],[11046,563490,107258,-739,26412739,26412739],[13065,563490,107258,-739,26412739,26412739],[15068,563490,107258,-739,26412739,26412739],[16419,563637,108167,-770,26372771,26412739],[19071,561856,108097,-319,26346901,26412739],[23425,564259,108400,-675,65867252,66031848]]}]},{"key":"490:3","id":490,"instance":3,"name":"Kor'kron Warbringer","type":"NPC","class":"NPC","kind":"add","color":"#ef6b5f","segments":[{"spaceId":"orgrimmar_main","start":10546,"end":25574,"lastEvidenceT":23574,"startReason":"initial","endReason":"last-event-grace","points":[[10546,563515,106918,-163,26412739,26412739],[12564,563515,106918,-163,26412739,26412739],[14568,563515,106918,-163,26412739,26412739],[17403,564099,107956,-714,26372771,26412739],[18421,564370,108268,-714,26353400,26412739],[20572,564370,108268,-714,26353400,26412739],[22574,564370,108268,-714,65883499,26412739],[23574,564370,108268,-714,65883499,66031848]]}]},{"key":"490:4","id":490,"instance":4,"name":"Kor'kron Warbringer","type":"NPC","class":"NPC","kind":"add","color":"#ef6b5f","segments":[{"spaceId":"orgrimmar_main","start":10946,"end":29168,"lastEvidenceT":27980,"startReason":"initial","endReason":"space-change","points":[[10946,565035,108331,-203,26412739,26412739],[12447,564632,109375,-191,26412739,26412739],[13941,564496,109238,-393,26390707,26412739],[15934,564496,109238,-393,26266705,26412739],[17403,564417,109083,-424,26221504,26412739],[25043,567623,109952,-659,65420534,66031848],[26043,567278,110035,-442,65420534,66031848],[27044,567084,110000,-333,65420534,66031848]]}]},{"key":"490:5","id":490,"instance":5,"name":"Kor'kron Warbringer","type":"NPC","class":"NPC","kind":"add","color":"#ef6b5f","segments":[{"spaceId":"orgrimmar_main","start":10946,"end":26229,"lastEvidenceT":24229,"startReason":"initial","endReason":"last-event-grace","points":[[10946,565212,108243,-201,26412739,26412739],[12447,564729,109255,-216,26412739,26412739],[13943,564709,109033,-461,26390707,26412739],[15934,564709,109033,-461,26283885,26412739],[17436,564709,109033,-461,26238686,26412739],[19221,564709,109033,-461,26212857,26412739],[21223,564709,109033,-461,26212857,26412739],[23224,564709,109033,-461,65532142,66031848]]}]},{"key":"490:6","id":490,"instance":6,"name":"Kor'kron Warbringer","type":"NPC","class":"NPC","kind":"add","color":"#ef6b5f","segments":[{"spaceId":"orgrimmar_main","start":10946,"end":25427,"lastEvidenceT":23427,"startReason":"initial","endReason":"last-event-grace","points":[[10946,564508,107053,-239,26412739,26412739],[12962,564508,107053,-239,26412739,26412739],[23425,559555,107958,-294,66031848,66031848]]}]},{"key":"492:1","id":492,"instance":1,"name":"Siege Engineer","type":"NPC","class":"NPC","kind":"add","color":"#ef6b5f","segments":[{"spaceId":"orgrimmar_main","start":21408,"end":29081,"lastEvidenceT":29081,"startReason":"initial","endReason":"mechanic-end","points":[[21408,574716,106197,-309,8600477,8600477]]}]},{"key":"492:2","id":492,"instance":2,"name":"Siege Engineer","type":"NPC","class":"NPC","kind":"add","color":"#ef6b5f","segments":[{"spaceId":"orgrimmar_main","start":21409,"end":29081,"lastEvidenceT":29081,"startReason":"initial","endReason":"mechanic-end","points":[[21409,553383,108419,-618,8600477,8600477]]}]}],"players":[15,23,5,36,3,8,56,2,51,7,50,19,271,13,6,55,9,58],"defaultActor":15,"abilities":{"2641":"Dismiss Pet","20484":"Rebirth","20707":"Soulstone","61999":"Raise Ally","73651":"Recuperate","94719":"The Innkeeper's Daughter","121536":"Angelic Feather","144582":"Hamstring","144616":"Power Iron Star","144748":"Desecrate","144758":"Desecrate","144762":"Desecrated","144821":"Hellscream's Warsong","145109":"Ysera's Gift","145193":"Silent Blades","146071":"Multistrike","146184":"Wrath of the Darkspear","146193":"Endurance of Niuzao","146198":"Essence of Yu'lon","146202":"Wrath","147811":"Astral Recall","149347":"Embodied Doubt"},"casts":[[2691,19,121536,-1],[4357,5,94719,-1],[8411,271,2641,-1],[12082,2,20707,8],[13666,50,73651,-1],[15135,36,61999,271],[20458,23,61999,58],[22958,3,20484,19]],"deaths":[{"t":8028,"actor":19},{"t":13316,"actor":271},{"t":13991,"actor":51},{"t":14836,"actor":6},{"t":15085,"actor":2},{"t":15852,"actor":58},{"t":16158,"actor":15},{"t":16858,"actor":9},{"t":16860,"actor":8},{"t":16861,"actor":13},{"t":16863,"actor":36},{"t":17839,"actor":55},{"t":18839,"actor":50},{"t":19374,"actor":56},{"t":20860,"actor":23},{"t":23427,"actor":3},{"t":28012,"actor":7}],"resurrections":[{"t":15135,"actor":271},{"t":20458,"actor":58},{"t":22959,"actor":19}],"mechanics":{"intervals":[],"pulses":[],"stacks":[],"doubtCasts":[],"ironStarTriggers":[]},"markers":[{"t":8028,"type":"death","label":"Lamasup died","target":19},{"t":11263,"type":"desecrate","label":"Desecrate 1"},{"t":13316,"type":"death","label":"Maddtwo died","target":271},{"t":13991,"type":"death","label":"Exarrow died","target":51},{"t":14836,"type":"death","label":"Odium died","target":6},{"t":15085,"type":"death","label":"Dreklock died","target":2},{"t":15852,"type":"death","label":"Soberup died","target":58},{"t":16158,"type":"death","label":"Belmodqt died","target":15},{"t":16858,"type":"death","label":"Smikkels died","target":9},{"t":16860,"type":"death","label":"Clampalafive died","target":8},{"t":16861,"type":"death","label":"Miaahh died","target":13},{"t":16863,"type":"death","label":"Callmepdiddy died","target":36},{"t":17839,"type":"death","label":"Silvanss died","target":55},{"t":18839,"type":"death","label":"Klakche died","target":50},{"t":19374,"type":"death","label":"Cyzs died","target":56},{"t":20860,"type":"death","label":"Bosspercent died","target":23},{"t":20998,"type":"adds","label":"Hellscream’s Warsong"},{"t":23427,"type":"death","label":"Cladztyn died","target":3},{"t":28012,"type":"death","label":"Gillasyum died","target":7},{"t":29168,"type":"wipe","label":"Wipe"}],"feed":[{"t":8028,"type":"death","label":"Lamasup died","target":19},{"t":10046,"type":"adds","label":"Kor'kron Warbringer ×6 active"},{"t":11263,"type":"desecrate","label":"Desecrate 1"},{"t":13316,"type":"death","label":"Maddtwo died","target":271},{"t":13991,"type":"death","label":"Exarrow died","target":51},{"t":14836,"type":"death","label":"Odium died","target":6},{"t":15085,"type":"death","label":"Dreklock died","target":2},{"t":15852,"type":"death","label":"Soberup died","target":58},{"t":16158,"type":"death","label":"Belmodqt died","target":15},{"t":16858,"type":"death","label":"Smikkels died","target":9},{"t":16860,"type":"death","label":"Clampalafive died","target":8},{"t":16861,"type":"death","label":"Miaahh died","target":13},{"t":16863,"type":"death","label":"Callmepdiddy died","target":36},{"t":17839,"type":"death","label":"Silvanss died","target":55},{"t":18839,"type":"death","label":"Klakche died","target":50},{"t":19374,"type":"death","label":"Cyzs died","target":56},{"t":20860,"type":"death","label":"Bosspercent died","target":23},{"t":20998,"type":"adds","label":"Hellscream’s Warsong"},{"t":21408,"type":"adds","label":"Siege Engineer ×2 active"},{"t":21408,"type":"iron-star","label":"Engineers power Iron Star"},{"t":23427,"type":"death","label":"Cladztyn died","target":3},{"t":28012,"type":"death","label":"Gillasyum died","target":7},{"t":29168,"type":"wipe","label":"Pull ended"}],"method":{"coordinateField":"WCL events(includeResources:true)","phaseRule":"Log-derived health-pool swaps, Realm aura and map-space visits (569 Jade Serpent; 568 Terrace), boss zero-health transition, and first negative-coordinate boss sample. A wipe stops at its final evidenced phase; later phases are not fabricated.","intermissionIdentity":"Heroic Realm visits are included only when logged: Temple of the Jade Serpent on map 569, followed by Terrace of Endless Spring on map 568 when the kill reaches it. No absent third Realm is fabricated.","interpolation":"Linear only within one actor segment and only when adjacent samples are at most 3 seconds apart; player discontinuities are hard segment breaks.","caveat":"Quiet actors retain their last logged position only inside an evidence-bounded segment. Actors awaiting a new-space sample are hidden.","doubtCastEvidence":"Doubt bars use logged cast starts plus the 2.5-second spell time; logged interrupts and deaths end them early.","ironStarAttribution":"Iron Star anchors and origins use the direct WCL Fire Iron Star event. The trigger clump uses the 25H seven-player, eight-yard rule and WCL position tracks at that instant; asynchronous combat-log samples are visibly marked when nearest-threshold reconstruction is required.","art":"Generated straight-down environment plates provide appearance; WCL coordinates remain positional truth. Non-metric mechanic cues do not claim exact hitbox size."},"stats":{"eventCount":637,"rawPlayerPositionSamples":115,"rawRelevantCoordinatePoints":248,"rawSegmentPoints":248,"compactCoordinatePoints":175,"playerCount":18,"trackedActorCount":28,"segmentCount":28,"teleportSplits":0,"implausibleJumpSplits":0,"lifecycleEvidenceCounts":{"fight-end":19,"last-event-grace":6,"space-change":1,"mechanic-end":2},"outlierPointsBySpace":{"orgrimmar_main":3},"evidenceCounts":{"normalDesecrates":1,"p1IronStarImpacts":0,"annihilates":0,"normalWhirlings":0,"empoweredWhirlings":0,"malices":0,"bombardments":0,"p4IronStarFirings":0,"ironStarTriggerAttributions":0,"doubtCastAttempts":0,"doubtInterrupts":0,"doubtDeathCancellations":0,"doubtNoInterruptEvents":0}},"raidSeries":{"reportCode":"9t1qBvag2DcpV3zM","currentPull":1,"totalPulls":13,"indexHref":"raid.html","attempts":[{"pull":1,"fightId":49,"kill":false,"duration":29168,"href":"pull-1.html"},{"pull":2,"fightId":50,"kill":false,"duration":92222,"href":"pull-2.html"},{"pull":3,"fightId":52,"kill":false,"duration":114660,"href":"pull-3.html"},{"pull":4,"fightId":53,"kill":false,"duration":139094,"href":"pull-4.html"},{"pull":5,"fightId":54,"kill":false,"duration":464666,"href":"pull-5.html"},{"pull":6,"fightId":55,"kill":false,"duration":33832,"href":"pull-6.html"},{"pull":7,"fightId":56,"kill":false,"duration":79495,"href":"pull-7.html"},{"pull":8,"fightId":57,"kill":false,"duration":537076,"href":"pull-8.html"},{"pull":9,"fightId":58,"kill":false,"duration":598502,"href":"pull-9.html"},{"pull":10,"fightId":59,"kill":false,"duration":561377,"href":"pull-10.html"},{"pull":11,"fightId":60,"kill":false,"duration":569543,"href":"pull-11.html"},{"pull":12,"fightId":61,"kill":false,"duration":101866,"href":"pull-12.html"},{"pull":13,"fightId":62,"kill":true,"duration":560913,"href":"pull-13.html"}]}};
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SVG_PLAY = '<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></svg>';
+const SVG_PAUSE = '<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>';
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 3.25;
+const ZOOM_STEP = 0.25;
+
+const actorByKey = new Map(DATA.actors.map(actor => [actor.key, actor]));
+const actorsById = new Map();
+for (const actor of DATA.actors) {
+  const existing = actorsById.get(actor.id);
+  if (!existing || actor.instance === 0 || actor.kind === "player") actorsById.set(actor.id, actor);
+}
+const players = DATA.players.map(id => actorsById.get(id)).filter(Boolean);
+const boss = DATA.actors.find(actor => actor.kind === "boss");
+const backgroundImages = new Map();
+const backgroundReady = new Set();
+for (const space of Object.values(DATA.spaces)) {
+  const image = new Image();
+  image.onload = () => { backgroundReady.add(space.id); renderCanvas(); };
+  image.onerror = () => { backgroundReady.delete(space.id); renderCanvas(); };
+  image.src = space.background;
+  backgroundImages.set(space.id, image);
+}
+
+const castsByActor = new Map();
+for (const cast of DATA.casts) {
+  if (!castsByActor.has(cast[1])) castsByActor.set(cast[1], []);
+  castsByActor.get(cast[1]).push(cast);
+}
+const lifecycleByActor = new Map();
+for (const event of DATA.deaths) {
+  if (!lifecycleByActor.has(event.actor)) lifecycleByActor.set(event.actor, []);
+  lifecycleByActor.get(event.actor).push({ t: event.t, alive: false });
+}
+for (const event of DATA.resurrections) {
+  if (!lifecycleByActor.has(event.actor)) lifecycleByActor.set(event.actor, []);
+  lifecycleByActor.get(event.actor).push({ t: event.t, alive: true });
+}
+for (const events of lifecycleByActor.values()) events.sort((left, right) => left.t - right.t);
+const playerLifecycleEvents = [
+  ...DATA.deaths.map(event => ({ ...event, alive: false })),
+  ...DATA.resurrections.map(event => ({ ...event, alive: true })),
+].sort((left, right) => left.t - right.t);
+
+const doubtCastsByInstance = new Map();
+for (const cast of DATA.mechanics.doubtCasts || []) {
+  if (!doubtCastsByInstance.has(cast.instance)) doubtCastsByInstance.set(cast.instance, []);
+  doubtCastsByInstance.get(cast.instance).push(cast);
+}
+for (const casts of doubtCastsByInstance.values()) casts.sort((left, right) => left.start - right.start);
+
+const FILTER_LABELS = {
+  all: "All mechanics",
+  adds: "Adds",
+  desecrate: "Desecrate",
+  "iron-star": "Iron Star",
+  transition: "Transitions",
+  realm: "Realm timer",
+  annihilate: "Annihilate",
+  interrupt: "Doubt interrupts",
+  touch: "Touch of Y’Shaarj",
+  whirling: "Whirling Corruption",
+  gripping: "Gripping Despair",
+  malice: "Malice",
+  bombardment: "Bombardment / Napalm",
+  manifest: "Manifest Rage",
+  death: "Deaths",
+};
+
+const state = {
+  t: 1000,
+  playing: false,
+  speed: 1,
+  selected: DATA.defaultActor,
+  trails: true,
+  follow: true,
+  trailMs: 10000,
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+  playerQuery: "",
+  eventFilter: "all",
+  raidFrames: false,
+  rosterOpen: false,
+  inspectorOpen: false,
+  phaseId: null,
+};
+
+let canvasSize = { width: 1, height: 1, dpr: 1 };
+let screenActors = [];
+let lastFrame = performance.now();
+let lastUiUpdate = 0;
+let lastHashUpdate = 0;
+let animationFrameId = null;
+let raidReturnFocus = null;
+let canvasDrag = null;
+let canvasPinch = null;
+let canvasGestureMoved = false;
+const raidFrameUnits = new Map();
+const canvasPointers = new Map();
+const portraitRaidMedia = matchMedia("(max-width: 860px) and (orientation: portrait)");
+const landscapeRaidMedia = matchMedia("(max-width: 1000px) and (max-height: 620px) and (orientation: landscape)");
+
+function fmtTime(ms, millis = true) {
+  const safe = Math.max(0, Math.round(ms));
+  const minutes = Math.floor(safe / 60000);
+  const seconds = Math.floor((safe % 60000) / 1000);
+  const remainder = safe % 1000;
+  return `${minutes}:${String(seconds).padStart(2, "0")}${millis ? "." + String(remainder).padStart(3, "0") : ""}`;
+}
+
+function announceReplay(message) {
+  const region = $("#replayAnnouncement");
+  if (region && region.textContent !== message) region.textContent = message;
+}
+
+function compactRaidMode() {
+  return portraitRaidMedia.matches || landscapeRaidMedia.matches;
+}
+
+function announceLifecycleBetween(previousT, currentT) {
+  if (currentT <= previousT) return;
+  for (const event of playerLifecycleEvents) {
+    if (event.t <= previousT || event.t > currentT) continue;
+    const actor = actorsById.get(event.actor);
+    announceReplay(`${actor?.name || "Player"} ${event.alive ? "was resurrected" : "died"} at ${fmtTime(event.t)}.`);
+  }
+}
+
+function phaseAt(t) {
+  return DATA.phases.find(phase => phase.start <= t && t < phase.end) || DATA.phases.at(-1);
+}
+
+function spaceAt(t) {
+  return DATA.spaces[phaseAt(t).spaceId];
+}
+
+function parseHash() {
+  const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+  const t = Number(params.get("t"));
+  const actor = Number(params.get("actor"));
+  const speed = Number(params.get("speed"));
+  if (params.has("t") && Number.isFinite(t)) state.t = clamp(t, DATA.fight.start, DATA.fight.end);
+  if (actorsById.has(actor) && actorsById.get(actor).kind === "player") state.selected = actor;
+  if ([0.5, 1, 2].includes(speed)) state.speed = speed;
+  if (params.has("trails")) state.trails = params.get("trails") !== "0";
+  if (params.has("raid")) state.raidFrames = params.get("raid") !== "0";
+}
+
+function writeHash(force = false) {
+  const now = performance.now();
+  if (!force && now - lastHashUpdate < 900) return;
+  lastHashUpdate = now;
+  const params = new URLSearchParams({
+    t: String(Math.round(state.t)),
+    actor: String(state.selected),
+    speed: String(state.speed),
+    trails: state.trails ? "1" : "0",
+    raid: state.raidFrames ? "1" : "0",
+  });
+  history.replaceState(null, "", `#${params}`);
+}
+
+function upperBound(points, t) {
+  let low = 0;
+  let high = points.length;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if (points[middle][0] <= t) low = middle + 1;
+    else high = middle;
+  }
+  return low;
+}
+
+function segmentAt(actor, t, spaceId = phaseAt(t).spaceId) {
+  if (!actor) return null;
+  return actor.segments.find(segment => segment.spaceId === spaceId && segment.start <= t && t <= segment.end) || null;
+}
+
+function withinSpace(sample, space) {
+  const bounds = space.bounds;
+  return sample && sample.x >= bounds.minX && sample.x <= bounds.maxX && sample.y >= bounds.minY && sample.y <= bounds.maxY;
+}
+
+function normalizedSpacePoint(sample, space) {
+  const bounds = space.bounds;
+  const axes = space.screenAxes || {
+    horizontal: "y", vertical: "x", invertHorizontal: false, invertVertical: true,
+  };
+  const normalize = (axis, inverted) => {
+    const suffix = axis.toUpperCase();
+    const minimum = bounds[`min${suffix}`];
+    const maximum = bounds[`max${suffix}`];
+    const value = (sample[axis] - minimum) / (maximum - minimum);
+    return inverted ? 1 - value : value;
+  };
+  return {
+    x: normalize(axes.horizontal, axes.invertHorizontal),
+    y: normalize(axes.vertical, axes.invertVertical),
+  };
+}
+
+function sampleAt(actor, t, spaceId = phaseAt(t).spaceId) {
+  const segment = segmentAt(actor, t, spaceId);
+  const points = segment?.points;
+  if (!points?.length || t < points[0][0]) return null;
+  const nextIndex = upperBound(points, t);
+  const previous = points[Math.max(0, nextIndex - 1)];
+  const next = nextIndex < points.length ? points[nextIndex] : null;
+  let x = previous[1];
+  let y = previous[2];
+  let interpolated = false;
+  if (next && next[0] > previous[0] && next[0] - previous[0] <= 3000) {
+    const ratio = clamp((t - previous[0]) / (next[0] - previous[0]), 0, 1);
+    x += (next[1] - previous[1]) * ratio;
+    y += (next[2] - previous[2]) * ratio;
+    interpolated = ratio > 0;
+  }
+  const sample = {
+    t: previous[0], x, y, facing: previous[3], hp: previous[4], maxHp: previous[5],
+    interpolated, segment, spaceId,
+  };
+  sample.inBounds = withinSpace(sample, DATA.spaces[spaceId]);
+  return sample;
+}
+
+function isAlive(actorId, t) {
+  let alive = true;
+  for (const event of lifecycleByActor.get(actorId) || []) {
+    if (event.t > t) break;
+    alive = event.alive;
+  }
+  return alive;
+}
+
+function activeIntervals(type, t = state.t) {
+  return DATA.mechanics.intervals.filter(interval => interval.type === type && interval.start <= t && t <= interval.end);
+}
+
+function activePulseTargets(t = state.t) {
+  return new Set(DATA.mechanics.pulses.filter(pulse => Math.abs(pulse.t - t) <= 330).flatMap(pulse => pulse.targets));
+}
+
+function doubtCastState(instance, t = state.t) {
+  const casts = doubtCastsByInstance.get(Number(instance)) || [];
+  const active = casts.find(cast => cast.start <= t && t < cast.end);
+  if (active) {
+    return {
+      phase: "casting",
+      cast: active,
+      progress: clamp((t - active.start) / (active.castEnd - active.start), 0, 1),
+      remaining: Math.max(0, active.castEnd - t),
+    };
+  }
+  const interrupted = casts.findLast(cast => cast.outcome === "interrupted" && cast.interruptT <= t && t <= cast.interruptT + 1_350);
+  if (interrupted) return { phase: "interrupted", cast: interrupted, progress: 1, remaining: 0 };
+  const died = casts.findLast(cast => cast.outcome === "ended-by-death" && cast.deathT <= t && t <= cast.deathT + 1_350);
+  if (died) return { phase: "ended-by-death", cast: died, progress: 1, remaining: 0 };
+  const unlogged = casts.findLast(cast => cast.outcome === "no-interrupt-event" && cast.castEnd <= t && t <= cast.castEnd + 900);
+  if (unlogged) return { phase: "no-interrupt-event", cast: unlogged, progress: 1, remaining: 0 };
+  return null;
+}
+
+function grippingAt(actorId, t) {
+  let result = null;
+  for (const row of DATA.mechanics.stacks) {
+    if (row.t > t) break;
+    if (row.target === actorId) result = row;
+  }
+  return result?.stacks ? result : null;
+}
+
+function currentMechanic(t) {
+  const malice = activeIntervals("malice", t)[0];
+  if (malice) return { type: "malice", label: `Malice → ${actorsById.get(malice.target)?.name || "player"}` };
+  const touch = activeIntervals("touch", t);
+  if (touch.length) return { type: "touch", label: `${touch[0].variant === "empowered" ? "Empowered " : ""}Touch · ${touch.length} controlled` };
+  const whirling = activeIntervals("whirling", t)[0];
+  if (whirling) return { type: "whirling", label: `${whirling.variant === "empowered" ? "Empowered " : ""}Whirling Corruption` };
+  const napalm = activeIntervals("napalm", t);
+  if (napalm.length) return { type: "bombardment", label: `Napalm · ${napalm.length} active` };
+  const ironStarTrigger = ironStarTriggerAt(t);
+  if (ironStarTrigger) return { type: "iron-star", label: `Iron Star trigger · ${ironStarTrigger.ownerName}` };
+  const doubtStates = Array.from(doubtCastsByInstance.keys()).map(instance => doubtCastState(instance, t)).filter(Boolean);
+  const kicked = doubtStates.find(row => row.phase === "interrupted");
+  if (kicked) return { type: "interrupt", label: `Doubt ${kicked.cast.instance} kicked · ${kicked.cast.interrupterName}` };
+  const died = doubtStates.find(row => row.phase === "ended-by-death");
+  if (died) return { type: "adds", label: `Doubt ${died.cast.instance} · DIED MID-CAST` };
+  const casting = doubtStates.filter(row => row.phase === "casting");
+  if (casting.length) return { type: "adds", label: `Embodied Doubt · ${casting.length} casting` };
+  const nearby = DATA.markers.find(marker => Math.abs(marker.t - t) <= 650);
+  if (nearby) return nearby;
+  let previous = null;
+  for (const marker of DATA.markers) {
+    if (marker.t > t) break;
+    previous = marker;
+  }
+  if (previous && t - previous.t <= 4500 && previous.type !== "death") return previous;
+  const phase = phaseAt(t);
+  if (phase.spaceId.startsWith("realm_")) return { type: "realm", label: `Realm timer · ${fmtTime(phase.end - t, false)} left` };
+  if (phase.id.startsWith("transition")) return { type: "transition", label: "Coordinate-space transition" };
+  return { type: "positioning", label: `${phase.short} positioning` };
+}
+
+function mechanicKind(type) {
+  if (["positioning", "transition", "realm", "kill"].includes(type)) return "calm";
+  if (["bombardment", "iron-star", "death", "wipe", "annihilate"].includes(type)) return "danger";
+  return "alert";
+}
+
+function lastCast(actorId, t) {
+  const casts = castsByActor.get(actorId) || [];
+  let low = 0;
+  let high = casts.length;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if (casts[middle][0] <= t) low = middle + 1;
+    else high = middle;
+  }
+  return low ? casts[low - 1] : null;
+}
+
+function ironStarTriggerAt(t = state.t) {
+  return (DATA.mechanics.ironStarTriggers || [])
+    .filter(trigger => trigger.t - 700 <= t && t <= trigger.t + 3_200)
+    .sort((left, right) => Math.abs(left.t - t) - Math.abs(right.t - t) || right.t - left.t)[0] || null;
+}
+
+function scheduleAnimation() {
+  if (animationFrameId == null && state.playing) animationFrameId = requestAnimationFrame(animationFrame);
+}
+
+function stopAnimation() {
+  if (animationFrameId != null) cancelAnimationFrame(animationFrameId);
+  animationFrameId = null;
+}
+
+function setTime(value, { pause = true, hash = true, announce = true } = {}) {
+  state.t = clamp(Number(value), DATA.fight.start, DATA.fight.end);
+  if (pause) {
+    state.playing = false;
+    stopAnimation();
+  }
+  if (hash) writeHash(true);
+  updateUi(true);
+  renderCanvas();
+  if (announce) {
+    const phase = phaseAt(state.t);
+    announceReplay(`Replay moved to ${fmtTime(state.t)}. ${phase.label}.`);
+  }
+}
+
+function selectActor(actorId, openInspector = false) {
+  const actor = actorsById.get(Number(actorId));
+  if (!actor || actor.kind !== "player") return;
+  state.selected = actor.id;
+  if (openInspector && matchMedia("(max-width: 860px) and (orientation: portrait)").matches) openDrawer("inspector");
+  writeHash(true);
+  renderRoster();
+  renderRaidFrames();
+  renderIronStarClumpCard();
+  updateInspector();
+  renderCanvas();
+  announceReplay(`${actor.name} selected.`);
+}
+
+function setPlaying(value) {
+  if (value && state.t >= DATA.fight.end) state.t = DATA.fight.start;
+  state.playing = value;
+  lastFrame = performance.now();
+  updateTransport();
+  writeHash(true);
+  if (state.playing) scheduleAnimation();
+  else stopAnimation();
+  renderCanvas();
+}
+
+function setSpeed(speed) {
+  state.speed = speed;
+  $$(".speed-button").forEach(button => button.setAttribute("aria-pressed", Number(button.dataset.speed) === speed ? "true" : "false"));
+  writeHash(true);
+}
+
+function resizeCanvas() {
+  const canvas = $("#arenaCanvas");
+  const rect = canvas.getBoundingClientRect();
+  const mobile = matchMedia("(max-width: 860px)").matches;
+  const dpr = Math.min(devicePixelRatio || 1, mobile ? 1.5 : 2);
+  const width = Math.max(1, Math.round(rect.width));
+  const height = Math.max(1, Math.round(rect.height));
+  if (canvasSize.width === width && canvasSize.height === height && canvasSize.dpr === dpr) return;
+  canvasSize = { width, height, dpr };
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
+  renderCanvas();
+}
+
+function constrainViewOffset(offsetX, offsetY, zoom, imageRect, plot) {
+  const maxOffsetX = Math.max(0, imageRect.width * zoom - plot.width) / 2;
+  const maxOffsetY = Math.max(0, imageRect.height * zoom - plot.height) / 2;
+  return {
+    x: clamp(offsetX, -maxOffsetX, maxOffsetX),
+    y: clamp(offsetY, -maxOffsetY, maxOffsetY),
+  };
+}
+
+function worldTransform() {
+  const width = canvasSize.width;
+  const height = canvasSize.height;
+  const compact = width < 640;
+  const margin = compact ? { top: 22, right: 16, bottom: 22, left: 16 } : { top: 30, right: 28, bottom: 28, left: 32 };
+  const plot = {
+    x: margin.left, y: margin.top,
+    width: Math.max(10, width - margin.left - margin.right),
+    height: Math.max(10, height - margin.top - margin.bottom),
+  };
+  const phase = phaseAt(state.t);
+  const space = DATA.spaces[phase.spaceId];
+  const bounds = space.bounds;
+  const worldRect = space.worldRect;
+  const zoom = clamp(state.zoom, MIN_ZOOM, MAX_ZOOM);
+  const image = backgroundImages.get(space.id);
+  const imageAspect = image?.naturalWidth && image?.naturalHeight ? image.naturalWidth / image.naturalHeight : 1.5;
+  const plotAspect = plot.width / plot.height;
+  const contain = space.imageFit === "contain";
+  const imageRect = contain
+    ? plotAspect > imageAspect
+      ? { x: plot.x + (plot.width - plot.height * imageAspect) / 2, y: plot.y, width: plot.height * imageAspect, height: plot.height }
+      : { x: plot.x, y: plot.y + (plot.height - plot.width / imageAspect) / 2, width: plot.width, height: plot.width / imageAspect }
+    : plotAspect > imageAspect
+      ? { x: plot.x, y: plot.y + (plot.height - plot.width / imageAspect) / 2, width: plot.width, height: plot.width / imageAspect }
+      : { x: plot.x + (plot.width - plot.height * imageAspect) / 2, y: plot.y, width: plot.height * imageAspect, height: plot.height };
+  let offsetX = state.panX;
+  let offsetY = state.panY;
+  if (state.follow) {
+    const selectedSample = sampleAt(actorsById.get(state.selected), state.t, space.id);
+    if (selectedSample?.inBounds) {
+      const normalized = normalizedSpacePoint(selectedSample, space);
+      const nx = normalized.x;
+      const ny = normalized.y;
+      const mapX = worldRect.x + nx * worldRect.width;
+      const mapY = worldRect.y + ny * worldRect.height;
+      const selectedX = plot.x + plot.width / 2 + imageRect.width * (mapX - 0.5) * zoom;
+      const selectedY = plot.y + plot.height / 2 + imageRect.height * (mapY - 0.5) * zoom;
+      const constrained = constrainViewOffset(
+        plot.x + plot.width / 2 - selectedX,
+        plot.y + plot.height / 2 - selectedY,
+        zoom,
+        imageRect,
+        plot,
+      );
+      offsetX = constrained.x;
+      offsetY = constrained.y;
+    }
+  } else {
+    const constrained = constrainViewOffset(offsetX, offsetY, zoom, imageRect, plot);
+    offsetX = constrained.x;
+    offsetY = constrained.y;
+  }
+  return {
+    plot, phase, space, bounds, worldRect, imageRect, zoom, offsetX, offsetY,
+    point(sample) {
+      const normalized = normalizedSpacePoint(sample, space);
+      const nx = normalized.x;
+      const ny = normalized.y;
+      const mapX = worldRect.x + nx * worldRect.width;
+      const mapY = worldRect.y + ny * worldRect.height;
+      return {
+        x: plot.x + plot.width / 2 + imageRect.width * (mapX - 0.5) * zoom + offsetX,
+        y: plot.y + plot.height / 2 + imageRect.height * (mapY - 0.5) * zoom + offsetY,
+      };
+    },
+  };
+}
+
+function updateZoomUi() {
+  const percentage = `${Math.round(state.zoom * 100)}%`;
+  const reset = $("#resetView");
+  const wrap = $("#canvasWrap");
+  if (!reset || !wrap) return;
+  $("#zoomValue").textContent = percentage;
+  reset.setAttribute("aria-label", `Reset arena view. Current zoom ${percentage}`);
+  reset.title = `Reset view to 100% and follow selected (0)`;
+  $("#zoomOut").disabled = state.zoom <= MIN_ZOOM + 0.001;
+  $("#zoomIn").disabled = state.zoom >= MAX_ZOOM - 0.001;
+  wrap.classList.toggle("is-zoomed", state.zoom > MIN_ZOOM + 0.001 || !state.follow);
+}
+
+function seedManualView(transform = worldTransform()) {
+  if (!state.follow) return transform;
+  state.panX = transform.offsetX;
+  state.panY = transform.offsetY;
+  state.follow = false;
+  const follow = $("#followSelected");
+  if (follow) follow.checked = false;
+  return transform;
+}
+
+function settleManualView() {
+  const transform = worldTransform();
+  state.panX = transform.offsetX;
+  state.panY = transform.offsetY;
+  updateZoomUi();
+  renderCanvas();
+}
+
+function zoomAround(nextZoom, anchorX, anchorY, { preserveFollow = false, announce = false } = {}) {
+  const desired = clamp(nextZoom, MIN_ZOOM, MAX_ZOOM);
+  const current = worldTransform();
+  if (Math.abs(desired - current.zoom) < 0.0005) return;
+  if (preserveFollow && state.follow) {
+    state.zoom = desired;
+  } else {
+    seedManualView(current);
+    const centerX = current.plot.x + current.plot.width / 2;
+    const centerY = current.plot.y + current.plot.height / 2;
+    const ratio = desired / current.zoom;
+    state.panX = (anchorX - centerX) - (anchorX - centerX - current.offsetX) * ratio;
+    state.panY = (anchorY - centerY) - (anchorY - centerY - current.offsetY) * ratio;
+    state.zoom = desired;
+    const constrained = worldTransform();
+    state.panX = constrained.offsetX;
+    state.panY = constrained.offsetY;
+  }
+  updateZoomUi();
+  renderCanvas();
+  if (announce) announceReplay(`Arena zoom ${Math.round(state.zoom * 100)} percent.`);
+}
+
+function zoomFromCenter(direction) {
+  const transform = worldTransform();
+  zoomAround(
+    state.zoom + direction * ZOOM_STEP,
+    transform.plot.x + transform.plot.width / 2,
+    transform.plot.y + transform.plot.height / 2,
+    { preserveFollow: true, announce: true },
+  );
+}
+
+function panViewBy(deltaX, deltaY) {
+  const current = worldTransform();
+  seedManualView(current);
+  state.panX = current.offsetX + deltaX;
+  state.panY = current.offsetY + deltaY;
+  settleManualView();
+}
+
+function resetArenaView({ announce = true } = {}) {
+  state.zoom = MIN_ZOOM;
+  state.panX = 0;
+  state.panY = 0;
+  state.follow = true;
+  const follow = $("#followSelected");
+  if (follow) follow.checked = true;
+  updateZoomUi();
+  renderCanvas();
+  if (announce) announceReplay("Arena view reset to 100 percent. Following selected player.");
+}
+
+function canvasPoint(event) {
+  const rect = event.currentTarget.getBoundingClientRect();
+  return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+}
+
+function selectCanvasActorAt(x, y) {
+  let nearest = null;
+  let distance = Infinity;
+  for (const item of screenActors) {
+    if (item.actor.kind !== "player") continue;
+    const candidate = Math.hypot(item.screen.x - x, item.screen.y - y);
+    if (candidate < distance) {
+      distance = candidate;
+      nearest = item;
+    }
+  }
+  if (nearest && distance <= (matchMedia("(pointer: coarse)").matches ? 24 : 16)) {
+    selectActor(nearest.actor.id, true);
+    return true;
+  }
+  return false;
+}
+
+function updateCanvasCursor(x = null, y = null) {
+  const canvas = $("#arenaCanvas");
+  if (!canvas) return;
+  if (canvasDrag?.moved || canvasPinch) {
+    canvas.style.cursor = "grabbing";
+    return;
+  }
+  const overPlayer = x != null && y != null && screenActors.some(
+    item => item.actor.kind === "player" && Math.hypot(item.screen.x - x, item.screen.y - y) <= 16,
+  );
+  canvas.style.cursor = overPlayer ? "pointer" : state.zoom > MIN_ZOOM + 0.001 || !state.follow ? "grab" : "crosshair";
+}
+
+function markCanvasGestureUsed() {
+  const hint = $("#canvasGestureHint");
+  if (hint) hint.classList.add("is-used");
+}
+
+function roundedRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
+function drawBackground(ctx, transform) {
+  const { width, height } = canvasSize;
+  const { plot, phase, space } = transform;
+  ctx.fillStyle = "#090d0f";
+  ctx.fillRect(0, 0, width, height);
+  roundedRect(ctx, plot.x, plot.y, plot.width, plot.height, Math.min(24, plot.height * 0.06));
+  ctx.fillStyle = "#0c1215";
+  ctx.fill();
+  ctx.save();
+  roundedRect(ctx, plot.x, plot.y, plot.width, plot.height, Math.min(24, plot.height * 0.06));
+  ctx.clip();
+  const imageWidth = transform.imageRect.width * transform.zoom;
+  const imageHeight = transform.imageRect.height * transform.zoom;
+  const imageX = plot.x + plot.width / 2 - imageWidth / 2 + transform.offsetX;
+  const imageY = plot.y + plot.height / 2 - imageHeight / 2 + transform.offsetY;
+  if (backgroundReady.has(space.id)) {
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(backgroundImages.get(space.id), imageX, imageY, imageWidth, imageHeight);
+  } else {
+    ctx.fillStyle = "#10181d";
+    ctx.fillRect(plot.x, plot.y, plot.width, plot.height);
+    ctx.save();
+    ctx.fillStyle = "#5f6d75";
+    ctx.font = '10px "Cascadia Mono", Consolas, monospace';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("LOADING MAP PLATE …", plot.x + plot.width / 2, plot.y + plot.height / 2);
+    ctx.restore();
+  }
+  let shadeAlpha = phase.spaceId.startsWith("realm_") ? 0.12 : phase.id === "p4" ? 0.16 : 0.22;
+  const shade = ctx.createLinearGradient(plot.x, plot.y, plot.x, plot.y + plot.height);
+  shade.addColorStop(0, `rgba(3,7,9,${shadeAlpha * 0.55})`);
+  shade.addColorStop(0.5, `rgba(3,7,9,${shadeAlpha})`);
+  shade.addColorStop(1, `rgba(3,7,9,${shadeAlpha * 1.25})`);
+  ctx.fillStyle = shade;
+  ctx.fillRect(plot.x, plot.y, plot.width, plot.height);
+  if (phase.id.startsWith("p2") || phase.id === "p3") {
+    const corruption = ctx.createRadialGradient(
+      plot.x + plot.width * 0.5, plot.y + plot.height * 0.48, plot.width * 0.06,
+      plot.x + plot.width * 0.5, plot.y + plot.height * 0.48, plot.width * 0.58,
+    );
+    corruption.addColorStop(0, "rgba(77,27,107,0)");
+    corruption.addColorStop(0.68, phase.id === "p3" ? "rgba(89,25,115,.17)" : "rgba(70,28,104,.09)");
+    corruption.addColorStop(1, phase.id === "p3" ? "rgba(36,5,56,.38)" : "rgba(31,8,48,.22)");
+    ctx.fillStyle = corruption;
+    ctx.fillRect(plot.x, plot.y, plot.width, plot.height);
+  }
+  if (phase.id.startsWith("transition")) {
+    ctx.fillStyle = "rgba(20,8,24,.30)";
+    ctx.fillRect(plot.x, plot.y, plot.width, plot.height);
+  }
+  ctx.restore();
+  roundedRect(ctx, plot.x, plot.y, plot.width, plot.height, Math.min(24, plot.height * 0.06));
+  ctx.strokeStyle = phase.color;
+  ctx.globalAlpha = 0.55;
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+function segmentTrackSlice(actor, start, end, spaceId) {
+  const segment = segmentAt(actor, end, spaceId);
+  if (!segment) return [];
+  const from = Math.max(0, upperBound(segment.points, start) - 1);
+  const to = upperBound(segment.points, end);
+  return segment.points.slice(from, to);
+}
+
+function drawTrail(ctx, actor, transform, selected) {
+  const points = segmentTrackSlice(actor, state.t - state.trailMs, state.t, transform.space.id);
+  if (points.length < 2) return;
+  ctx.save();
+  ctx.strokeStyle = actor.color;
+  ctx.globalAlpha = selected ? 0.84 : actor.kind === "player" ? 0.23 : 0.38;
+  ctx.lineWidth = selected ? 2.4 : actor.kind === "player" ? 1.1 : 1.6;
+  ctx.beginPath();
+  let started = false;
+  let previous = null;
+  for (const point of points) {
+    const sample = { x: point[1], y: point[2] };
+    if (!withinSpace(sample, transform.space) || (previous && point[0] - previous[0] > 3000)) started = false;
+    if (!withinSpace(sample, transform.space)) { previous = point; continue; }
+    const screen = transform.point(sample);
+    if (!started) { ctx.moveTo(screen.x, screen.y); started = true; }
+    else ctx.lineTo(screen.x, screen.y);
+    previous = point;
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawLabel(ctx, text, x, y, color, align = "left") {
+  const compact = canvasSize.width < 640;
+  ctx.save();
+  ctx.font = `${compact ? 10 : 11}px "Segoe UI", sans-serif`;
+  ctx.textAlign = align;
+  ctx.textBaseline = "middle";
+  ctx.lineWidth = 3.5;
+  ctx.strokeStyle = "rgba(5,8,10,.94)";
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function drawCastCue(ctx, bossScreen, label, color) {
+  if (!bossScreen) return;
+  const pulse = reducedMotion ? 0 : Math.sin(performance.now() / 120) * 2;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = 0.78;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 4]);
+  ctx.beginPath();
+  ctx.arc(bossScreen.x, bossScreen.y, 28 + pulse, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  drawLabel(ctx, label, bossScreen.x, bossScreen.y - 36, color, "center");
+  ctx.restore();
+}
+
+function drawIronStarTrigger(ctx, transform) {
+  const trigger = ironStarTriggerAt();
+  if (!trigger || trigger.spaceId !== transform.space.id || trigger.x == null || trigger.y == null) return;
+  const screen = transform.point(trigger);
+  const inside = screen.x >= transform.plot.x && screen.x <= transform.plot.x + transform.plot.width
+    && screen.y >= transform.plot.y && screen.y <= transform.plot.y + transform.plot.height;
+  if (!inside) return;
+  const compact = canvasSize.width < 640;
+  const elapsed = state.t - trigger.t;
+  const pulse = reducedMotion ? 0 : Math.sin(performance.now() / 95) * 2.5;
+  const worldRadius = (trigger.clumpRadiusUnits || 8) * 100;
+  const worldX = transform.point({ x: trigger.x + worldRadius, y: trigger.y });
+  const worldY = transform.point({ x: trigger.x, y: trigger.y + worldRadius });
+  const radiusX = Math.max(Math.abs(worldX.x - screen.x), Math.abs(worldY.x - screen.x));
+  const radiusY = Math.max(Math.abs(worldX.y - screen.y), Math.abs(worldY.y - screen.y));
+  const members = trigger.clumpMembers || trigger.nearbyPlayers || [];
+  ctx.save();
+  ctx.strokeStyle = "#ffb36f";
+  ctx.lineWidth = compact ? 2 : 2.5;
+  ctx.globalAlpha = elapsed < 0 ? 0.55 : 0.92;
+  ctx.setLineDash([5, 4]);
+  ctx.beginPath();
+  ctx.ellipse(screen.x, screen.y, radiusX, radiusY, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  for (const member of members) {
+    if (member.x == null || member.y == null) continue;
+    const memberScreen = transform.point(member);
+    const memberInside = memberScreen.x >= transform.plot.x - 12
+      && memberScreen.x <= transform.plot.x + transform.plot.width + 12
+      && memberScreen.y >= transform.plot.y - 12
+      && memberScreen.y <= transform.plot.y + transform.plot.height + 12;
+    if (!memberInside) continue;
+    const estimated = member.membershipConfidence === "estimated";
+    const anchor = member.actor === trigger.owner;
+    ctx.strokeStyle = anchor ? "#ff765d" : estimated ? "#e4a365" : "#ffd47d";
+    ctx.fillStyle = anchor ? "rgba(255, 92, 68, .22)" : estimated ? "rgba(202, 142, 82, .16)" : "rgba(255, 200, 101, .14)";
+    ctx.globalAlpha = elapsed < 0 ? 0.5 : 0.9;
+    ctx.lineWidth = anchor ? 2.8 : 2;
+    ctx.setLineDash(estimated ? [3, 3] : []);
+    ctx.beginPath();
+    ctx.moveTo(screen.x, screen.y);
+    ctx.lineTo(memberScreen.x, memberScreen.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(memberScreen.x, memberScreen.y, compact ? 9 : 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#fff5e8";
+    ctx.font = `800 ${compact ? 8 : 9}px "Segoe UI", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(String(member.rank || ""), memberScreen.x, memberScreen.y + 0.5);
+  }
+  ctx.strokeStyle = "#ff7b5e";
+  ctx.lineWidth = compact ? 2 : 2.5;
+  ctx.beginPath();
+  ctx.moveTo(screen.x - 8, screen.y);
+  ctx.lineTo(screen.x + 8, screen.y);
+  ctx.moveTo(screen.x, screen.y - 8);
+  ctx.lineTo(screen.x, screen.y + 8);
+  ctx.stroke();
+  const labelY = screen.y - radiusY - 12 - pulse;
+  drawLabel(ctx, `IRON STAR CLUMP · ${members.length} PLAYERS`, screen.x, labelY, "#ffb27e", "center");
+  if (!compact) {
+    drawLabel(
+      ctx,
+      `${trigger.ownerName.toUpperCase()} ANCHOR · ${trigger.clumpRadiusUnits || 8} YD CHECK`,
+      screen.x,
+      labelY - 14,
+      "#d7dde1",
+      "center",
+    );
+  }
+  ctx.restore();
+}
+
+function drawDoubtCastOverlay(ctx, actor, screen, radius, compact) {
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `800 ${compact ? 7 : 8}px "Segoe UI", sans-serif`;
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = "rgba(3, 8, 10, .94)";
+  ctx.strokeText(String(actor.instance), screen.x, screen.y + 0.5);
+  ctx.fillStyle = "#f3fbfd";
+  ctx.fillText(String(actor.instance), screen.x, screen.y + 0.5);
+  ctx.restore();
+
+  const status = doubtCastState(actor.instance, state.t);
+  if (!status) return;
+  const pulse = reducedMotion ? 0 : Math.sin(performance.now() / 90) * 1.2;
+  const ringRadius = radius + (compact ? 6 : 8) + pulse;
+  const color = status.phase === "casting" ? "#ffd166" : status.phase === "interrupted" ? "#69e6be" : status.phase === "ended-by-death" ? "#ff7d74" : "#efa45f";
+  ctx.save();
+  ctx.lineWidth = compact ? 2 : 2.4;
+  ctx.strokeStyle = "rgba(5, 10, 12, .82)";
+  ctx.beginPath();
+  ctx.arc(screen.x, screen.y, ringRadius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = status.phase === "casting" ? 0.96 : 0.86;
+  ctx.beginPath();
+  if (status.phase === "casting") ctx.arc(screen.x, screen.y, ringRadius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * status.progress);
+  else ctx.arc(screen.x, screen.y, ringRadius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  if (status.phase === "casting") {
+    const barWidth = compact ? 34 : 44;
+    const barHeight = compact ? 5 : 7;
+    const barX = screen.x - barWidth / 2;
+    const barY = screen.y - radius - (compact ? 15 : 19);
+    ctx.save();
+    roundedRect(ctx, barX - 1, barY - 1, barWidth + 2, barHeight + 2, 3);
+    ctx.fillStyle = "rgba(3, 8, 10, .88)";
+    ctx.fill();
+    roundedRect(ctx, barX, barY, barWidth, barHeight, 2);
+    ctx.fillStyle = "rgba(51, 43, 29, .94)";
+    ctx.fill();
+    roundedRect(ctx, barX, barY, Math.max(2, barWidth * status.progress), barHeight, 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+    const seconds = (status.remaining / 1000).toFixed(1);
+    drawLabel(ctx, `${seconds}s`, screen.x, barY - (compact ? 5 : 7), "#ffe09a", "center");
+  } else if (status.phase === "interrupted") {
+    drawLabel(ctx, compact ? "KICKED" : `KICKED · ${status.cast.interrupterName}`, screen.x, screen.y - radius - 14, color, "center");
+  } else if (status.phase === "ended-by-death") {
+    drawLabel(ctx, "DIED MID-CAST", screen.x, screen.y - radius - 14, color, "center");
+  } else {
+    drawLabel(ctx, "NO KICK EVENT", screen.x, screen.y - radius - 14, color, "center");
+  }
+}
+
+function renderIronStarClumpCard() {
+  const card = $("#ironClumpCard");
+  if (!card) return;
+  const trigger = ironStarTriggerAt();
+  if (!trigger || phaseAt(state.t).id !== "p4" || state.raidFrames) {
+    card.hidden = true;
+    return;
+  }
+  const members = trigger.clumpMembers || trigger.nearbyPlayers || [];
+  const estimated = trigger.clumpConfidence !== "high";
+  card.hidden = false;
+  card.classList.toggle("is-estimated", estimated);
+  card.setAttribute(
+    "aria-label",
+    `Iron Star trigger clump at ${fmtTime(trigger.t)}. ${members.length} reconstructed players. ${trigger.ownerName} is the logged anchor.`,
+  );
+  $("#ironClumpTitle").textContent = `${trigger.ownerName} anchor · ${fmtTime(trigger.t)}`;
+  $("#ironClumpCount").textContent = `${members.length} player${members.length === 1 ? "" : "s"}`;
+  $("#ironClumpMeta").textContent = `${trigger.clumpRequired || 7} required · ${trigger.clumpRadiusUnits || 8} yd radius · ${trigger.clumpObservedInsideRadius ?? members.length} directly inside`;
+  $("#ironClumpNote").textContent = estimated
+    ? "Dashed members are nearest-threshold estimates where asynchronous WCL position samples undershot the server check."
+    : "Solid members were observed inside the eight-yard trigger radius at the logged check instant.";
+  const fragment = document.createDocumentFragment();
+  for (const member of members) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "iron-clump-member";
+    if (member.membershipConfidence === "estimated") button.classList.add("is-estimated");
+    button.dataset.actor = String(member.actor);
+    button.setAttribute("aria-pressed", member.actor === state.selected ? "true" : "false");
+    button.setAttribute(
+      "aria-label",
+      `${member.rank}. ${member.name}, ${member.distance.toFixed(1)} yards from the logged trigger origin${member.role === "anchor" ? ", logged anchor" : ""}${member.membershipConfidence === "estimated" ? ", estimated membership" : ""}. Select player.`,
+    );
+    button.title = `${member.name} · ${member.distance.toFixed(1)} yd${member.role === "anchor" ? " · logged anchor" : ""}`;
+    const rank = document.createElement("span");
+    rank.className = "clump-rank";
+    rank.textContent = String(member.rank);
+    const name = document.createElement("span");
+    name.className = "clump-name";
+    name.textContent = member.name;
+    const distance = document.createElement("span");
+    distance.className = "clump-distance";
+    distance.textContent = `${member.distance.toFixed(1)}y`;
+    button.append(rank, name, distance);
+    button.addEventListener("click", () => selectActor(member.actor));
+    fragment.append(button);
+  }
+  $("#ironClumpMembers").replaceChildren(fragment);
+}
+
+function renderCanvas() {
+  const canvas = $("#arenaCanvas");
+  if (!canvas.width || !canvas.height) return;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(canvasSize.dpr, 0, 0, canvasSize.dpr, 0, 0);
+  const transform = worldTransform();
+  drawBackground(ctx, transform);
+
+  if (state.trails) {
+    for (const actor of DATA.actors) {
+      if (["player", "boss", "iron-star", "minion"].includes(actor.kind)) drawTrail(ctx, actor, transform, actor.id === state.selected && actor.kind === "player");
+    }
+  }
+
+  drawIronStarTrigger(ctx, transform);
+
+  const maliceTargets = new Set(activeIntervals("malice").map(row => row.target));
+  const touchTargets = new Set(activeIntervals("touch").map(row => row.target));
+  const napalmTargets = new Set(activeIntervals("napalm").map(row => row.target));
+  const pulseTargets = activePulseTargets();
+  const compact = canvasSize.width < 640;
+  const labelCandidates = [];
+  screenActors = [];
+  let bossScreen = null;
+
+  for (const actor of DATA.actors) {
+    const sample = sampleAt(actor, state.t, transform.space.id);
+    if (!sample?.inBounds) continue;
+    const screen = transform.point(sample);
+    const inPlot = screen.x >= transform.plot.x - 18 && screen.x <= transform.plot.x + transform.plot.width + 18 && screen.y >= transform.plot.y - 18 && screen.y <= transform.plot.y + transform.plot.height + 18;
+    if (!inPlot) continue;
+    const alive = actor.kind !== "player" || isAlive(actor.id, state.t);
+    const selected = actor.kind === "player" && actor.id === state.selected;
+    const targetedMalice = maliceTargets.has(actor.id) && actor.kind === "player";
+    const targetedTouch = touchTargets.has(actor.id) && actor.kind === "player";
+    const targetedNapalm = napalmTargets.has(actor.id) && actor.kind === "player";
+    const pulsed = pulseTargets.has(actor.id) && actor.kind === "player";
+    let radius = compact ? 4.7 : 5.7;
+    if (actor.kind === "boss") radius = compact ? 11 : 14;
+    if (["iron-star", "weapon"].includes(actor.kind)) radius = compact ? 7 : 8.5;
+    if (["add", "doubt", "minion"].includes(actor.kind)) radius = compact ? 5.5 : 6.5;
+    screenActors.push({ actor, sample, screen, radius: Math.max(radius, 10) });
+
+    ctx.save();
+    if (pulsed) {
+      ctx.strokeStyle = "#fff0ad";
+      ctx.globalAlpha = reducedMotion ? 0.72 : 0.55 + 0.30 * Math.sin(performance.now() / 70);
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(screen.x, screen.y, radius + 9, 0, Math.PI * 2); ctx.stroke();
+    }
+    if (targetedMalice || targetedTouch || targetedNapalm || selected) {
+      const color = targetedMalice ? "#f7b84b" : targetedTouch ? "#bb7cff" : targetedNapalm ? "#ff6b55" : "#d8c8ff";
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = 0.94;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.arc(screen.x, screen.y, radius + (targetedMalice ? 13 : 8), 0, Math.PI * 2); ctx.stroke();
+      if (targetedMalice) {
+        ctx.setLineDash([4, 4]); ctx.globalAlpha = 0.45;
+        ctx.beginPath(); ctx.arc(screen.x, screen.y, radius + 21, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+
+    if (["iron-star", "weapon", "add", "doubt", "minion"].includes(actor.kind)) {
+      ctx.translate(screen.x, screen.y);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = alive ? actor.color : "#59646a";
+      ctx.strokeStyle = actor.kind === "weapon" ? "#e2bdff" : "rgba(255,255,255,.84)";
+      ctx.lineWidth = 1.4;
+      ctx.fillRect(-radius * 0.75, -radius * 0.75, radius * 1.5, radius * 1.5);
+      ctx.strokeRect(-radius * 0.75, -radius * 0.75, radius * 1.5, radius * 1.5);
+    } else {
+      ctx.fillStyle = alive ? actor.color : "#59646a";
+      ctx.strokeStyle = actor.kind === "boss" ? "#ffc2bf" : "rgba(255,255,255,.88)";
+      ctx.lineWidth = actor.kind === "boss" ? 2.2 : 1.15;
+      ctx.beginPath(); ctx.arc(screen.x, screen.y, radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      if (actor.kind === "boss") {
+        ctx.fillStyle = "#381416";
+        ctx.beginPath(); ctx.arc(screen.x, screen.y, radius * 0.47, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    ctx.restore();
+    if (actor.kind === "doubt") drawDoubtCastOverlay(ctx, actor, screen, radius, compact);
+    if (actor.kind === "boss") bossScreen = screen;
+
+    const shouldLabel = selected || targetedMalice || targetedTouch || actor.kind === "boss" || actor.kind === "iron-star" || (!compact && actor.kind === "player");
+    if (shouldLabel) {
+      const label = actor.kind === "boss" ? "Garrosh" : actor.instance && actor.kind !== "player" ? `${actor.name} ${actor.instance}` : actor.name;
+      const priority = selected ? 0 : targetedMalice ? 1 : targetedTouch ? 2 : actor.kind === "boss" ? 3 : actor.kind === "iron-star" ? 4 : 5;
+      labelCandidates.push({ label, screen, radius, priority, color: selected ? "#f2edff" : targetedMalice ? "#ffd17a" : targetedTouch ? "#d8b4ff" : actor.kind === "boss" ? "#ff8a84" : "#e2e7e9" });
+    }
+  }
+
+  const whirling = activeIntervals("whirling")[0];
+  if (whirling) drawCastCue(ctx, bossScreen, `${whirling.variant === "empowered" ? "EMPOWERED " : ""}WHIRLING · CUE`, "#d28aff");
+  const annihilate = DATA.markers.find(marker => marker.type === "annihilate" && marker.t <= state.t && state.t <= marker.t + 2600);
+  if (annihilate) drawCastCue(ctx, bossScreen, "ANNIHILATE · CAST CUE", "#79dbef");
+
+  const boxes = [];
+  labelCandidates.sort((left, right) => left.priority - right.priority);
+  ctx.font = `${compact ? 10 : 11}px "Segoe UI", sans-serif`;
+  for (const candidate of labelCandidates) {
+    if (compact && candidate.priority > 4) continue;
+    const width = ctx.measureText(candidate.label).width + 6;
+    const placeLeft = candidate.screen.x + candidate.radius + width + 8 > transform.plot.x + transform.plot.width;
+    const x = placeLeft ? candidate.screen.x - candidate.radius - 5 : candidate.screen.x + candidate.radius + 5;
+    const align = placeLeft ? "right" : "left";
+    const box = { x: placeLeft ? x - width : x, y: candidate.screen.y - 7, width, height: 14 };
+    const overlaps = boxes.some(other => !(box.x + box.width < other.x || other.x + other.width < box.x || box.y + box.height < other.y || other.y + other.height < box.y));
+    if (overlaps && candidate.priority > 3) continue;
+    boxes.push(box);
+    drawLabel(ctx, candidate.label, x, candidate.screen.y, candidate.color, align);
+  }
+  document.documentElement.dataset.ready = "true";
+}
+
+function renderRoster() {
+  const list = $("#playerList");
+  const query = state.playerQuery.trim().toLocaleLowerCase();
+  const fragment = document.createDocumentFragment();
+  const space = spaceAt(state.t);
+  for (const actor of players.filter(row => row.name.toLocaleLowerCase().includes(query))) {
+    const sample = sampleAt(actor, state.t, space.id);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "player-row";
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", actor.id === state.selected ? "true" : "false");
+    const dot = document.createElement("span");
+    dot.className = "class-dot";
+    dot.style.background = actor.color;
+    const name = document.createElement("span");
+    name.className = "player-name";
+    name.style.color = actor.color === "#FFFFFF" ? "#f4f6f7" : actor.color;
+    name.textContent = actor.name;
+    const status = document.createElement("span");
+    status.className = "player-state";
+    const alive = isAlive(actor.id, state.t);
+    const age = sample ? Math.max(0, (state.t - sample.t) / 1000) : 0;
+    status.textContent = !sample ? "WAIT" : !sample.inBounds ? "TRANSIT" : !alive ? "DEAD" : `${age.toFixed(1)}s`;
+    status.dataset.flag = !sample ? "wait" : !sample.inBounds ? "transit" : !alive ? "dead" : age >= 2 ? "stale" : "fresh";
+    button.dataset.state = alive ? "alive" : "dead";
+    button.append(dot, name, status);
+    button.addEventListener("click", () => selectActor(actor.id, true));
+    fragment.append(button);
+  }
+  if (!fragment.childElementCount) {
+    const empty = document.createElement("div");
+    empty.className = "list-empty";
+    empty.textContent = `No players match “${state.playerQuery.trim()}”.`;
+    fragment.append(empty);
+  }
+  list.replaceChildren(fragment);
+  $("#playerCount").textContent = String(players.length);
+}
+
+function buildRaidFrames() {
+  const fragment = document.createDocumentFragment();
+  for (const actor of players) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "raid-frame-unit";
+    button.dataset.actor = String(actor.id);
+    button.style.setProperty("--unit-color", actor.color);
+    const name = document.createElement("span");
+    name.className = "raid-unit-name";
+    name.textContent = actor.name;
+    const status = document.createElement("span");
+    status.className = "raid-unit-status";
+    status.setAttribute("aria-hidden", "true");
+    button.append(name, status);
+    button.addEventListener("click", () => selectActor(actor.id));
+    raidFrameUnits.set(actor.id, { actor, button, status });
+    fragment.append(button);
+  }
+  $("#raidFrameGrid").replaceChildren(fragment);
+}
+
+function syncBackdrop() {
+  const raidModal = state.raidFrames && portraitRaidMedia.matches;
+  $("#drawerBackdrop").classList.toggle("is-open", state.rosterOpen || state.inspectorOpen || raidModal);
+}
+
+function syncRaidPresentation({ focus = false } = {}) {
+  const panel = $("#raidFramePanel");
+  const toggle = $("#raidFramesToggle");
+  const mobile = compactRaidMode();
+  const mobileOpen = state.raidFrames && mobile;
+  panel.hidden = !state.raidFrames;
+  toggle.setAttribute("aria-pressed", state.raidFrames ? "true" : "false");
+  toggle.setAttribute("aria-expanded", state.raidFrames ? "true" : "false");
+  document.body.classList.toggle("raid-mobile-open", mobileOpen);
+  for (const rail of [$("#roster"), $("#inspector")]) rail.inert = mobileOpen;
+  if (mobile) {
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", portraitRaidMedia.matches ? "true" : "false");
+  } else {
+    panel.removeAttribute("role");
+    panel.removeAttribute("aria-modal");
+  }
+  syncBackdrop();
+  if (focus && mobileOpen) queueMicrotask(() => $("#raidFrameClose").focus());
+}
+
+function renderRaidFrames() {
+  syncRaidPresentation();
+  if (!state.raidFrames) return;
+
+  const deadCount = players.filter(actor => !isAlive(actor.id, state.t)).length;
+  const aliveCount = players.length - deadCount;
+  const summary = deadCount ? `${aliveCount} alive · ${deadCount} dead` : `${aliveCount} alive`;
+  if ($("#raidFrameSummary").textContent !== summary) $("#raidFrameSummary").textContent = summary;
+  for (const { actor, button, status } of raidFrameUnits.values()) {
+    const alive = isAlive(actor.id, state.t);
+    button.classList.toggle("is-dead", !alive);
+    button.dataset.state = alive ? "alive" : "dead";
+    button.setAttribute("aria-pressed", actor.id === state.selected ? "true" : "false");
+    button.setAttribute("aria-label", `${actor.name}, ${actor.class || "Player"}, ${alive ? "alive" : "dead"}`);
+    button.title = `${actor.name} · ${actor.class || "Player"} · ${alive ? "Alive" : "Dead"}`;
+    status.textContent = alive ? "" : "×";
+  }
+}
+
+function setRaidFrames(visible, { hash = true, focus = true, announce = true } = {}) {
+  const opening = Boolean(visible) && !state.raidFrames;
+  const closing = !visible && state.raidFrames;
+  if (opening) {
+    raidReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : $("#raidFramesToggle");
+    closeDrawers();
+  }
+  state.raidFrames = Boolean(visible);
+  renderRaidFrames();
+  renderIronStarClumpCard();
+  if (hash) writeHash(true);
+  if (focus && opening) syncRaidPresentation({ focus: true });
+  if (focus && closing && raidReturnFocus?.isConnected) raidReturnFocus.focus();
+  if (announce) announceReplay(state.raidFrames ? "Raid frames opened." : "Raid frames closed.");
+}
+
+function updateInspector() {
+  const actor = actorsById.get(state.selected) || players[0];
+  const phase = phaseAt(state.t);
+  const space = DATA.spaces[phase.spaceId];
+  const sample = sampleAt(actor, state.t, space.id);
+  const bossSample = sampleAt(boss, state.t, space.id);
+  $("#selectedName").textContent = actor.name;
+  $("#selectedClass").textContent = actor.class || "Player";
+  $("#selectedDot").style.background = actor.color;
+  if (sample?.inBounds) {
+    const localX = (sample.y - space.bounds.minY) / 100;
+    const localY = (sample.x - space.bounds.minX) / 100;
+    $("#coordinateValue").textContent = `${localX.toFixed(1)}, ${localY.toFixed(1)} u`;
+    $("#sampleAgeValue").textContent = `${Math.max(0, (state.t - sample.t) / 1000).toFixed(2)}s`;
+    if (bossSample?.inBounds) $("#distanceValue").textContent = `${(Math.hypot(sample.x - bossSample.x, sample.y - bossSample.y) / 100).toFixed(1)} u`;
+    else $("#distanceValue").textContent = "—";
+    if (sample.hp != null && sample.maxHp) {
+      const percent = clamp(sample.hp / sample.maxHp * 100, 0, 100);
+      $("#healthValue").textContent = `${percent.toFixed(1)}%`;
+      $("#healthFill").style.width = `${percent}%`;
+      $("#healthFill").style.background = percent < 35 ? "#ff706a" : percent < 65 ? "#f2bc57" : "#75d68c";
+    } else {
+      $("#healthValue").textContent = "No resource sample";
+      $("#healthFill").style.width = "0%";
+    }
+  } else {
+    $("#coordinateValue").textContent = sample ? "Transit sample clipped" : "Awaiting space sample";
+    $("#distanceValue").textContent = "—";
+    $("#sampleAgeValue").textContent = "—";
+    $("#healthValue").textContent = "—";
+    $("#healthFill").style.width = "0%";
+  }
+  let status = "Inactive";
+  let statusColor = "#e5eaec";
+  const malice = activeIntervals("malice").find(row => row.target === actor.id);
+  const touch = activeIntervals("touch").find(row => row.target === actor.id);
+  const napalm = activeIntervals("napalm").find(row => row.target === actor.id);
+  const gripping = grippingAt(actor.id, state.t);
+  if (malice) { status = "Malice target"; statusColor = "#f7b84b"; }
+  else if (touch) { status = `${touch.variant === "empowered" ? "Empowered " : ""}Touch`; statusColor = "#c998ff"; }
+  else if (napalm) { status = "Napalm"; statusColor = "#ff735f"; }
+  else if (gripping) { status = `${gripping.variant === "empowered" ? "Emp. " : ""}Gripping ×${gripping.stacks}`; statusColor = "#ef7aa6"; }
+  $("#maliceValue").textContent = status;
+  $("#maliceValue").style.color = statusColor;
+  const cast = lastCast(actor.id, state.t);
+  $("#lastEventValue").textContent = cast ? `${fmtTime(cast[0])} · ${DATA.abilities[String(cast[2])] || cast[2]}` : "No cast yet";
+}
+
+function updateFilterOptions(phase) {
+  if (state.phaseId === phase.id) return;
+  state.phaseId = phase.id;
+  const select = $("#eventFilter");
+  const allowed = ["all", ...phase.filters, "death"];
+  if (!allowed.includes(state.eventFilter)) state.eventFilter = "all";
+  const fragment = document.createDocumentFragment();
+  for (const value of allowed) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value === "all" ? `All · ${phase.short}` : FILTER_LABELS[value] || value;
+    option.selected = value === state.eventFilter;
+    fragment.append(option);
+  }
+  select.replaceChildren(fragment);
+}
+
+function renderEventFeed() {
+  const phase = phaseAt(state.t);
+  const filtered = DATA.feed.filter(event => {
+    if (state.eventFilter !== "all") return state.eventFilter === "malice" ? event.type.startsWith("malice") : event.type === state.eventFilter;
+    return event.t >= phase.start - 12000 && event.t <= phase.end + 12000;
+  });
+  let pivot = filtered.findIndex(event => event.t > state.t);
+  if (pivot < 0) pivot = filtered.length;
+  const visible = filtered.slice(Math.max(0, pivot - 7), Math.min(filtered.length, pivot + 4));
+  const fragment = document.createDocumentFragment();
+  const nowIndex = visible.reduce((latest, event, index) => (event.t <= state.t ? index : latest), -1);
+  for (const [index, event] of visible.entries()) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "event-row";
+    if (event.t > state.t) button.classList.add("is-future");
+    if (index === nowIndex) button.classList.add("is-now");
+    button.dataset.type = event.type;
+    const clumpMembers = event.clumpMembers || event.nearbyPlayers || [];
+    const clumpNames = clumpMembers
+      .map(player => `${player.name}${player.membershipConfidence === "estimated" ? " (estimated)" : ""}`)
+      .join(", ");
+    const evidenceCopy = event.evidence === "logged-clump-owner"
+      ? ` Direct WCL trigger anchor. Reconstructed ${clumpMembers.length}-player clump: ${clumpNames}.${event.clumpConfidence === "estimated" ? " Some membership is nearest-threshold estimated because WCL position samples are asynchronous." : ""}`
+      : "";
+    button.setAttribute("aria-label", `${fmtTime(event.t)} ${event.label}.${evidenceCopy} Jump to event.`);
+    if (evidenceCopy) button.title = evidenceCopy.trim();
+    const time = document.createElement("span");
+    time.className = "event-time";
+    time.textContent = fmtTime(event.t);
+    const dot = document.createElement("span");
+    dot.className = "event-dot";
+    dot.style.background = phaseAt(event.t).color;
+    const copy = document.createElement("span");
+    copy.className = "event-copy";
+    copy.textContent = event.clumpMemberCount
+      ? `${event.label} · ${event.clumpMemberCount} player clump`
+      : event.label;
+    button.append(time, dot, copy);
+    button.addEventListener("click", () => {
+      if (event.target && actorsById.get(event.target)?.kind === "player") selectActor(event.target);
+      setTime(event.t);
+    });
+    fragment.append(button);
+  }
+  if (!fragment.childElementCount) {
+    const empty = document.createElement("div");
+    empty.className = "list-empty";
+    empty.textContent = "No logged events for this filter near the current phase.";
+    fragment.append(empty);
+  }
+  $("#eventList").replaceChildren(fragment);
+}
+
+function buildTimeline() {
+  const duration = DATA.fight.end - DATA.fight.start;
+  const phaseFragment = document.createDocumentFragment();
+  for (const phase of DATA.phases) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "phase-band";
+    button.dataset.phase = phase.id;
+    const widthPercent = (phase.end - phase.start) / duration * 100;
+    button.style.width = `${widthPercent}%`;
+    button.style.setProperty("--phase-color", phase.color);
+    button.textContent = phase.short;
+    if (widthPercent < 4.5) button.classList.add("is-slim");
+    button.title = `${phase.label} · ${fmtTime(phase.start)}–${fmtTime(phase.end)}`;
+    button.setAttribute("aria-label", `${phase.label}, ${fmtTime(phase.start)} to ${fmtTime(phase.end)}. Jump to phase start.`);
+    button.addEventListener("click", () => setTime(phase.start + (phase.start ? 10 : 0)));
+    phaseFragment.append(button);
+  }
+  $("#phaseBands").replaceChildren(phaseFragment);
+
+  const tickFragment = document.createDocumentFragment();
+  const tickCount = 8;
+  for (let index = 0; index <= tickCount; index++) {
+    const t = duration * index / tickCount;
+    const label = document.createElement("span");
+    label.className = "tick-label";
+    label.style.left = `${index / tickCount * 100}%`;
+    label.textContent = fmtTime(t, false);
+    tickFragment.append(label);
+  }
+  $("#timelineTicks").replaceChildren(tickFragment);
+
+  const markerFragment = document.createDocumentFragment();
+  let previousPosition = -100;
+  let previousLabelPosition = -100;
+  let lane = 0;
+  for (const [markerIndex, marker] of DATA.markers.entries()) {
+    const position = (marker.t - DATA.fight.start) / duration * 100;
+    lane = position - previousPosition < 2.8 ? 1 - lane : 0;
+    previousPosition = position;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "marker-button";
+    button.dataset.type = marker.type;
+    button.dataset.lane = String(lane);
+    button.dataset.markerIndex = String(markerIndex);
+    button.style.left = `${position}%`;
+    if (!["death", "kill", "wipe"].includes(marker.type)) button.style.color = phaseAt(marker.t).color;
+    button.title = `${marker.label} · ${fmtTime(marker.t)}`;
+    button.setAttribute("aria-label", `${marker.label} at ${fmtTime(marker.t)}. Jump to event.`);
+    const text = document.createElement("span");
+    const showLong = ["iron-star", "whirling", "bombardment", "malice", "death", "kill", "wipe"].includes(marker.type) && position - previousLabelPosition >= 5.5;
+    if (showLong) previousLabelPosition = position;
+    let shortLabel = marker.label.replace("Empowered ", "Emp. ").replace("P1 Iron Star impact", "P1 Star impact").replace("P4 Iron Star fired", "P4 Star");
+    shortLabel = shortLabel.replace(/^Iron Star trigger → /, "Star · ");
+    shortLabel = shortLabel.replace(/^Malice (\d+) → /, "M$1 · ");
+    text.textContent = showLong ? shortLabel : "";
+    button.append(text);
+    button.addEventListener("click", () => {
+      if (marker.target && actorsById.get(marker.target)?.kind === "player") selectActor(marker.target);
+      setTime(marker.t);
+    });
+    markerFragment.append(button);
+  }
+  $("#timelineMarkers").replaceChildren(markerFragment);
+}
+
+function updateTimeline() {
+  const progress = clamp((state.t - DATA.fight.start) / (DATA.fight.end - DATA.fight.start), 0, 1);
+  $("#timelineProgress").style.width = `${progress * 100}%`;
+  $("#playhead").style.left = `${progress * 100}%`;
+  $("#playheadLabel").style.left = `${progress * 100}%`;
+  $("#playheadLabel").textContent = fmtTime(state.t);
+  $$(".phase-band").forEach(button => button.setAttribute("aria-current", button.dataset.phase === phaseAt(state.t).id ? "true" : "false"));
+}
+
+function updateTransport() {
+  const button = $("#playButton");
+  if (state.playing) {
+    button.setAttribute("aria-label", "Pause replay");
+    button.innerHTML = `${SVG_PAUSE}<span id="playButtonText">Pause</span>`;
+  } else {
+    button.setAttribute("aria-label", "Play replay");
+    button.innerHTML = `${SVG_PLAY}<span id="playButtonText">Play</span>`;
+  }
+  $("#scrubber").value = String(Math.round(state.t));
+  $("#trailsToggle").checked = state.trails;
+  $("#followSelected").checked = state.follow;
+  $$(".speed-button").forEach(button => button.setAttribute("aria-pressed", Number(button.dataset.speed) === state.speed ? "true" : "false"));
+}
+
+function updateLegend(phase) {
+  const legend = $(".arena-legend");
+  const rows = phase.spaceId === "realm_ysaarj"
+    ? [["player", "Player sample"], ["hostile", "Numbered Doubt / cast"], ["malice", "Logged kick / cast cue"], ["trail", "Logged trail"]]
+    : phase.spaceId === "realm_terrace"
+      ? [["player", "Player sample"], ["hostile", "Embodied Fear / hostile"], ["malice", "Logged cast cue"], ["trail", "Logged trail"]]
+      : phase.id === "p4"
+        ? [["clump", "Iron Star trigger clump"], ["malice", "Malice / target cue"], ["player", "Player sample"], ["hostile", "Iron Star / hostile"], ["trail", "Logged trail"]]
+        : [["player", "Player sample"], ["hostile", phase.id === "p1" ? "Adds / weapon" : "Hostile / minion"], ["malice", "Target or cast cue"], ["trail", "Logged trail"]];
+  legend.innerHTML = rows.map(([kind, label]) => `<div class="legend-row"><span class="legend-mark ${kind}"></span>${label}</div>`).join("");
+}
+
+function updateCanvasSummary() {
+  const phase = phaseAt(state.t);
+  const space = DATA.spaces[phase.spaceId];
+  const actor = actorsById.get(state.selected);
+  const sample = sampleAt(actor, state.t, space.id);
+  const visiblePlayers = players.filter(player => sampleAt(player, state.t, space.id)?.inBounds).length;
+  const trigger = ironStarTriggerAt();
+  const clumpSummary = trigger
+    ? `The active Iron Star check reconstructs ${trigger.clumpMemberCount} players around ${trigger.ownerName}, the directly logged anchor${trigger.clumpConfidence === "estimated" ? "; dashed members have position-sample uncertainty" : ""}.`
+    : "";
+  $("#canvasSummary").textContent = [
+    `Garrosh full-fight replay at ${fmtTime(state.t)} of ${fmtTime(DATA.fight.end)}.`,
+    `${phase.label}, ${space.label}.`,
+    `${visiblePlayers} player positions are currently on the calibrated floor.`,
+    actor && sample?.inBounds ? `${actor.name} is selected; its logged sample is ${((state.t - sample.t) / 1000).toFixed(2)} seconds old.` : "The selected player is awaiting a valid sample in this coordinate space.",
+    phase.spaceId === "realm_ysaarj" ? DATA.method.doubtCastEvidence : "",
+    phase.id === "p4" ? DATA.method.ironStarAttribution : "",
+    clumpSummary,
+    DATA.method.caveat,
+  ].filter(Boolean).join(" ");
+}
+
+function updateUi(force = false) {
+  const phase = phaseAt(state.t);
+  const space = DATA.spaces[phase.spaceId];
+  const mechanic = currentMechanic(state.t);
+  const phaseChanged = state.phaseId !== phase.id;
+  updateFilterOptions(phase);
+  const replayIdentity = DATA.raidSeries
+    ? `Pull ${DATA.raidSeries.currentPull}/${DATA.raidSeries.totalPulls}`
+    : `Fight ${DATA.fight.id}`;
+  document.title = `Garrosh Full Fight Replay · ${fmtTime(state.t)} · ${replayIdentity}`;
+  $(".phase-name").textContent = phase.label;
+  $("#topMechanic").textContent = mechanic.label;
+  $("#topTime").textContent = fmtTime(state.t);
+  $("#arenaHeading").textContent = phase.label;
+  $("#arenaSpace").textContent = space.label;
+  $("#arenaMechanic").textContent = mechanic.label;
+  $(".arena-mechanic").dataset.kind = mechanicKind(mechanic.type);
+  $(".current-mechanic").dataset.kind = mechanicKind(mechanic.type);
+  $("#currentTime").textContent = fmtTime(state.t);
+  $("#endTime").textContent = fmtTime(DATA.fight.end);
+  $(".canvas-note").textContent = `${space.label.toUpperCase()} · WCL CALIBRATION`;
+  $("#arenaCanvas").setAttribute("aria-label", `Top-down replay at ${fmtTime(state.t)} in ${phase.label}, using ${space.label}`);
+  const caveat = phase.spaceId === "realm_ysaarj"
+    ? DATA.method.doubtCastEvidence
+    : phase.id === "p4"
+      ? DATA.method.ironStarAttribution
+      : DATA.method.caveat;
+  $("#canvasCaveat").firstChild.textContent = `${caveat} `;
+  updateLegend(phase);
+  updateTimeline();
+  updateTransport();
+  updateInspector();
+  renderIronStarClumpCard();
+  renderEventFeed();
+  renderRoster();
+  renderRaidFrames();
+  updateZoomUi();
+  updateCanvasSummary();
+  if (phaseChanged && !force) announceReplay(`${phase.label} at ${fmtTime(state.t)}.`);
+}
+
+function openDrawer(name) {
+  if (name && state.raidFrames) setRaidFrames(false, { focus: false, announce: false });
+  const roster = name === "roster";
+  const inspector = name === "inspector";
+  state.rosterOpen = roster;
+  state.inspectorOpen = inspector;
+  $("#roster").classList.toggle("is-open", roster);
+  $("#inspector").classList.toggle("is-open", inspector);
+  $("#playersToggle").setAttribute("aria-expanded", roster ? "true" : "false");
+  $("#eventsToggle").setAttribute("aria-expanded", inspector ? "true" : "false");
+  syncBackdrop();
+}
+
+function closeDrawers() {
+  openDrawer(null);
+}
+
+function nextPlayer(direction) {
+  const current = players.findIndex(player => player.id === state.selected);
+  selectActor(players[(current + direction + players.length) % players.length].id);
+}
+
+function bindEvents() {
+  $("#playButton").addEventListener("click", () => setPlaying(!state.playing));
+  $$(".speed-button").forEach(button => button.addEventListener("click", () => setSpeed(Number(button.dataset.speed))));
+  $("#scrubber").addEventListener("input", event => setTime(Number(event.target.value), { pause: true, hash: false, announce: false }));
+  $("#scrubber").addEventListener("change", event => setTime(Number(event.target.value), { pause: true, hash: true, announce: true }));
+  $("#back10").addEventListener("click", () => setTime(state.t - 10000));
+  $("#forward10").addEventListener("click", () => setTime(state.t + 10000));
+  $("#playerSearch").addEventListener("input", event => { state.playerQuery = event.target.value; renderRoster(); });
+  $("#eventFilter").addEventListener("change", event => { state.eventFilter = event.target.value; renderEventFeed(); });
+  $("#trailsToggle").addEventListener("change", event => { state.trails = event.target.checked; writeHash(true); renderCanvas(); });
+  $("#followSelected").addEventListener("change", event => {
+    if (event.target.checked) {
+      state.follow = true;
+    } else {
+      const current = worldTransform();
+      state.panX = current.offsetX;
+      state.panY = current.offsetY;
+      state.follow = false;
+    }
+    updateZoomUi();
+    renderCanvas();
+  });
+  $("#trailLength").addEventListener("change", event => { state.trailMs = Number(event.target.value); renderCanvas(); });
+  $("#zoomIn").addEventListener("click", () => zoomFromCenter(1));
+  $("#zoomOut").addEventListener("click", () => zoomFromCenter(-1));
+  $("#resetView").addEventListener("click", () => resetArenaView());
+  $("#raidFramesToggle").addEventListener("click", () => setRaidFrames(!state.raidFrames));
+  $("#raidFrameClose").addEventListener("click", () => setRaidFrames(false));
+  $("#playersToggle").addEventListener("click", () => openDrawer(state.rosterOpen ? null : "roster"));
+  $("#eventsToggle").addEventListener("click", () => openDrawer(state.inspectorOpen ? null : "inspector"));
+  $("#rosterClose").addEventListener("click", closeDrawers);
+  $("#inspectorClose").addEventListener("click", closeDrawers);
+  $("#drawerBackdrop").addEventListener("click", () => state.raidFrames ? setRaidFrames(false) : closeDrawers());
+  $("#shortcutsButton").addEventListener("click", () => $("#shortcutsDialog").showModal());
+
+  const canvas = $("#arenaCanvas");
+  canvas.addEventListener("wheel", event => {
+    event.preventDefault();
+    const point = canvasPoint(event);
+    zoomAround(state.zoom * Math.exp(-event.deltaY * 0.0015), point.x, point.y);
+    markCanvasGestureUsed();
+  }, { passive: false });
+
+  canvas.addEventListener("pointerdown", event => {
+    if (event.button !== 0 && event.pointerType === "mouse") return;
+    const point = canvasPoint(event);
+    canvas.setPointerCapture(event.pointerId);
+    canvasPointers.set(event.pointerId, point);
+    canvasGestureMoved = false;
+    if (canvasPointers.size === 1) {
+      canvasDrag = {
+        pointerId: event.pointerId,
+        startX: point.x,
+        startY: point.y,
+        lastX: point.x,
+        lastY: point.y,
+        moved: false,
+      };
+      canvasPinch = null;
+    } else if (canvasPointers.size === 2) {
+      const [first, second] = Array.from(canvasPointers.values());
+      canvasPinch = {
+        distance: Math.max(1, Math.hypot(second.x - first.x, second.y - first.y)),
+        midpoint: { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 },
+      };
+      canvasDrag = null;
+      canvasGestureMoved = true;
+    }
+    updateCanvasCursor(point.x, point.y);
+    event.preventDefault();
+  });
+
+  canvas.addEventListener("pointermove", event => {
+    const point = canvasPoint(event);
+    if (!canvasPointers.has(event.pointerId)) {
+      if (event.pointerType === "mouse") updateCanvasCursor(point.x, point.y);
+      return;
+    }
+    canvasPointers.set(event.pointerId, point);
+    if (canvasPointers.size >= 2) {
+      const [first, second] = Array.from(canvasPointers.values());
+      const distance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y));
+      const midpoint = { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 };
+      if (canvasPinch) {
+        zoomAround(state.zoom * distance / canvasPinch.distance, canvasPinch.midpoint.x, canvasPinch.midpoint.y);
+        panViewBy(midpoint.x - canvasPinch.midpoint.x, midpoint.y - canvasPinch.midpoint.y);
+      }
+      canvasPinch = { distance, midpoint };
+      canvasGestureMoved = true;
+      markCanvasGestureUsed();
+      updateCanvasCursor();
+      event.preventDefault();
+      return;
+    }
+    if (canvasDrag?.pointerId === event.pointerId) {
+      const totalDistance = Math.hypot(point.x - canvasDrag.startX, point.y - canvasDrag.startY);
+      if (totalDistance >= 4) canvasDrag.moved = true;
+      if (canvasDrag.moved) {
+        panViewBy(point.x - canvasDrag.lastX, point.y - canvasDrag.lastY);
+        canvasGestureMoved = true;
+        markCanvasGestureUsed();
+      }
+      canvasDrag.lastX = point.x;
+      canvasDrag.lastY = point.y;
+      updateCanvasCursor(point.x, point.y);
+      event.preventDefault();
+    }
+  });
+
+  const endCanvasPointer = event => {
+    const point = canvasPoint(event);
+    const wasClick = canvasDrag?.pointerId === event.pointerId
+      && !canvasDrag.moved && !canvasGestureMoved && !canvasPinch;
+    canvasPointers.delete(event.pointerId);
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    if (canvasPointers.size === 1) {
+      const [pointerId, remaining] = Array.from(canvasPointers.entries())[0];
+      canvasDrag = {
+        pointerId,
+        startX: remaining.x,
+        startY: remaining.y,
+        lastX: remaining.x,
+        lastY: remaining.y,
+        moved: true,
+      };
+      canvasPinch = null;
+    } else if (!canvasPointers.size) {
+      canvasDrag = null;
+      canvasPinch = null;
+      if (wasClick) selectCanvasActorAt(point.x, point.y);
+      settleManualView();
+      canvasGestureMoved = false;
+    }
+    updateCanvasCursor(point.x, point.y);
+  };
+  canvas.addEventListener("pointerup", endCanvasPointer);
+  canvas.addEventListener("pointercancel", endCanvasPointer);
+  canvas.addEventListener("dblclick", event => {
+    const point = canvasPoint(event);
+    zoomAround(state.zoom + ZOOM_STEP * 2, point.x, point.y, { announce: true });
+    markCanvasGestureUsed();
+  });
+
+  $("#timelineAxis").addEventListener("pointerdown", event => {
+    if (event.target.closest("button")) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    setTime((event.clientX - rect.left) / rect.width * DATA.fight.end);
+  });
+  $("#timelineAxis").addEventListener("click", event => {
+    if (!event.detail || !event.target.closest(".marker-button")) return;
+    const markerButtons = $$(".marker-button", event.currentTarget);
+    const nearest = markerButtons.reduce((best, button) => {
+      const rect = button.getBoundingClientRect();
+      const distance = Math.abs(rect.left + rect.width / 2 - event.clientX);
+      return !best || distance < best.distance ? { button, distance } : best;
+    }, null)?.button;
+    const marker = nearest ? DATA.markers[Number(nearest.dataset.markerIndex)] : null;
+    if (!marker) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (marker.target && actorsById.get(marker.target)?.kind === "player") selectActor(marker.target);
+    setTime(marker.t);
+  }, true);
+
+  window.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      closeDrawers();
+      if (state.raidFrames) setRaidFrames(false);
+      return;
+    }
+    if (event.key === "Tab" && state.raidFrames && portraitRaidMedia.matches) {
+      const focusable = $$("button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex='-1'])", $("#raidFramePanel"))
+        .filter(element => !element.hidden && element.getClientRects().length);
+      if (focusable.length) {
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+      return;
+    }
+    const interactive = event.target instanceof Element && event.target.closest("a,button,input,select,textarea,summary,[contenteditable]:not([contenteditable='false']),[role='button'],[role='link'],[role='checkbox'],[role='radio'],[role='switch'],[role='option'],[role='slider'],[role='tab'],[role='menuitem'],[role='combobox'],[role='textbox']");
+    if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || interactive || $("#shortcutsDialog").open) return;
+    if (event.code === "Space") { event.preventDefault(); setPlaying(!state.playing); }
+    else if (event.key === "ArrowLeft") { event.preventDefault(); setTime(state.t - (event.shiftKey ? 10000 : 1000)); }
+    else if (event.key === "ArrowRight") { event.preventDefault(); setTime(state.t + (event.shiftKey ? 10000 : 1000)); }
+    else if (event.key === "+" || event.key === "=") { event.preventDefault(); zoomFromCenter(1); }
+    else if (event.key === "-" || event.key === "_") { event.preventDefault(); zoomFromCenter(-1); }
+    else if (event.key === "0") { event.preventDefault(); resetArenaView(); }
+    else if (event.key === "[") nextPlayer(-1);
+    else if (event.key === "]") nextPlayer(1);
+    else if (event.key.toLowerCase() === "t") { state.trails = !state.trails; writeHash(true); renderCanvas(); }
+    else if (event.key.toLowerCase() === "g") setRaidFrames(!state.raidFrames);
+    else if (event.key.toLowerCase() === "r") setTime(DATA.fight.start);
+  });
+  window.addEventListener("hashchange", () => { parseHash(); updateUi(true); renderCanvas(); });
+  portraitRaidMedia.addEventListener("change", () => syncRaidPresentation());
+  landscapeRaidMedia.addEventListener("change", () => syncRaidPresentation());
+  new ResizeObserver(resizeCanvas).observe($("#canvasWrap"));
+}
+
+function initialize() {
+  parseHash();
+  const raidSeriesLink = $("#raidSeriesLink");
+  if (DATA.raidSeries) {
+    $("#reportLine").textContent = `${DATA.report.title} · Pull ${DATA.raidSeries.currentPull}/${DATA.raidSeries.totalPulls} · Fight ${DATA.fight.id} · ${DATA.fight.kill ? "Kill" : "Wipe"}`;
+    raidSeriesLink.href = DATA.raidSeries.indexHref || "raid.html";
+    raidSeriesLink.textContent = `All ${DATA.raidSeries.totalPulls} pulls`;
+    raidSeriesLink.hidden = false;
+  } else {
+    $("#reportLine").textContent = `${DATA.report.title} · Fight ${DATA.fight.id} · Heroic ${DATA.fight.size} · ${DATA.fight.kill ? "Kill" : "Wipe"}`;
+  }
+  $("#playerList").setAttribute("aria-label", `Players in fight ${DATA.fight.id}`);
+  $("#sourceLink").href = DATA.report.url;
+  $("#methodLink").href = DATA.report.url;
+  $("#methodLink").target = "_blank";
+  $("#methodLink").rel = "noreferrer";
+  $("#playerCount").textContent = String(DATA.stats.playerCount);
+  $("#rosterFoot").textContent = `${DATA.stats.playerCount} player tracks · ${DATA.stats.compactCoordinatePoints.toLocaleString()} compact samples`;
+  $("#scrubber").min = String(DATA.fight.start);
+  $("#scrubber").max = String(DATA.fight.end);
+  $("#scrubberStart").textContent = fmtTime(DATA.fight.start);
+  $("#scrubberEnd").textContent = fmtTime(DATA.fight.end);
+  buildTimeline();
+  buildRaidFrames();
+  bindEvents();
+  updateUi(true);
+  resizeCanvas();
+  updateZoomUi();
+  writeHash(true);
+  window.__GARROSH_REPLAY__ = {
+    DATA, state, phaseAt, spaceAt, segmentAt, sampleAt, withinSpace, normalizedSpacePoint,
+    worldTransform, segmentTrackSlice, currentMechanic, setTime, selectActor, setPlaying,
+    setRaidFrames, doubtCastState, isAlive, ironStarTriggerAt, zoomAround, resetArenaView, renderCanvas,
+    animationScheduled: () => animationFrameId !== null,
+  };
+}
+
+function animationFrame(now) {
+  animationFrameId = null;
+  if (!state.playing) return;
+  const previousT = state.t;
+  const delta = Math.min(100, now - lastFrame);
+  lastFrame = now;
+  state.t += delta * state.speed;
+  if (state.t >= DATA.fight.end) {
+    state.t = DATA.fight.end;
+    state.playing = false;
+    writeHash(true);
+    updateTransport();
+    announceReplay("Replay finished.");
+  } else {
+    writeHash(false);
+    announceLifecycleBetween(previousT, state.t);
+  }
+  renderCanvas();
+  if (now - lastUiUpdate > 120) {
+    lastUiUpdate = now;
+    updateUi(false);
+  }
+  if (state.playing) scheduleAnimation();
+}
+
+initialize();
+
+  </script>
+</body>
+</html>
