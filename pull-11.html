@@ -1309,7 +1309,7 @@ function currentMechanic(t) {
   const nearby = DATA.markers.find(marker => Math.abs(marker.t - t) <= 650);
   if (nearby) return nearby;
   let previous = null;
-  for (const [markerIndex, marker] of DATA.markers.entries()) {
+  for (const marker of DATA.markers) {
     if (marker.t > t) break;
     previous = marker;
   }
@@ -2224,7 +2224,7 @@ function buildTimeline() {
   let previousPosition = -100;
   let previousLabelPosition = -100;
   let lane = 0;
-  for (const marker of DATA.markers) {
+  for (const [markerIndex, marker] of DATA.markers.entries()) {
     const position = (marker.t - DATA.fight.start) / duration * 100;
     lane = position - previousPosition < 2.8 ? 1 - lane : 0;
     previousPosition = position;
