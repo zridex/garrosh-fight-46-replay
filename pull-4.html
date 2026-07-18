@@ -1094,8 +1094,8 @@
             </div>
           </div>
           <div class="toggle-row">
-            <label class="check-label"><input id="followSelected" type="checkbox" checked>Follow selected</label>
-            <label class="check-label"><input id="trailsToggle" type="checkbox" checked>Trails</label>
+            <label class="check-label"><input id="followSelected" type="checkbox">Follow selected</label>
+            <label class="check-label"><input id="trailsToggle" type="checkbox">Trails</label>
             <label class="check-label" for="trailLength">Length
               <select class="trail-select" id="trailLength">
                 <option value="5000">5s</option>
@@ -1213,13 +1213,18 @@ const FILTER_LABELS = {
   death: "Deaths",
 };
 
+const VIEWER_DEFAULTS = Object.freeze({
+  trails: false,
+  follow: false,
+});
+
 const state = {
   t: 1000,
   playing: false,
   speed: 1,
   selected: DATA.defaultActor,
-  trails: true,
-  follow: true,
+  trails: VIEWER_DEFAULTS.trails,
+  follow: VIEWER_DEFAULTS.follow,
   trailMs: 10000,
   zoom: 1,
   panX: 0,
