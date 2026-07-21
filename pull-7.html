@@ -1336,7 +1336,7 @@ function withinSpace(sample, space) {
 function normalizedSpacePoint(sample, space) {
   const bounds = space.bounds;
   const axes = space.screenAxes || {
-    horizontal: "y", vertical: "x", invertHorizontal: false, invertVertical: true,
+    horizontal: "y", vertical: "x", invertHorizontal: true, invertVertical: true,
   };
   const normalize = (axis, inverted) => {
     const suffix = axis.toUpperCase();
